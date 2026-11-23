@@ -25,7 +25,7 @@ NOTES_OUT = ROOT / "presentation" / "Group_9_Presentation_Twitch_notes.md"
 MOTIVATION_FIGURE = ROOT / "outputs" / "figures" / "channel_ecdf_motivation.png"
 
 FONT = "Calibri"
-HEADER_FONT_SIZE = 18
+HEADER_FONT_SIZE = 24
 NAVY = RGBColor(0x12, 0x30, 0x47)
 TEAL = RGBColor(0x08, 0x7D, 0x8B)
 BLUE = RGBColor(0x35, 0x5D, 0x9B)
@@ -277,41 +277,6 @@ def oval(slide, x: float, y: float, w: float, h: float, color: RGBColor,
     return shape
 
 
-def draw_history_icon(slide, x: float, y: float) -> None:
-    oval(slide, x + 0.18, y, 0.34, 0.34, TEAL)
-    oval(slide, x, y + 0.38, 0.70, 0.46, LIGHT, line=TEAL)
-    for i in range(3):
-        rect(slide, x + 0.84, y + 0.08 + i * 0.23, 0.65 - i * 0.08, 0.06, BLUE)
-
-
-def draw_ranking_icon(slide, x: float, y: float) -> None:
-    for row in range(4):
-        for col in range(4):
-            fill = TEAL if (row, col) in {(0, 2), (1, 0), (2, 3), (3, 1)} else LIGHT
-            rect(slide, x + col * 0.20, y + row * 0.20, 0.14, 0.14,
-                 fill, line=GRID)
-    rect(slide, x + 0.92, y + 0.04, 0.07, 0.75, NAVY)
-    rect(slide, x + 1.04, y + 0.18, 0.36, 0.07, TEAL)
-    rect(slide, x + 1.04, y + 0.39, 0.28, 0.07, TEAL)
-    rect(slide, x + 1.04, y + 0.60, 0.20, 0.07, TEAL)
-
-
-def draw_topk_icon(slide, x: float, y: float) -> None:
-    rect(slide, x, y, 1.24, 0.85, WHITE, line=TEAL)
-    for i, width in enumerate((0.72, 0.58, 0.45)):
-        text(slide, str(i + 1), x + 0.10, y + 0.10 + i * 0.23, 0.18, 0.16,
-             size=9, color=NAVY, bold=True, align=PP_ALIGN.CENTER)
-        rect(slide, x + 0.36, y + 0.15 + i * 0.23, width, 0.055,
-             TEAL if i == 0 else BLUE)
-
-
-def draw_future_view_icon(slide, x: float, y: float) -> None:
-    rect(slide, x, y + 0.08, 1.10, 0.64, WHITE, line=TEAL)
-    oval(slide, x + 0.34, y + 0.20, 0.42, 0.30, LIGHT, line=TEAL)
-    oval(slide, x + 0.49, y + 0.26, 0.12, 0.12, TEAL)
-    rect(slide, x + 0.44, y + 0.75, 0.22, 0.05, NAVY)
-
-
 def flatten_shape_effects(shape) -> None:
     """Remove template theme effect references and explicitly apply an empty effect list."""
     element = shape._element
@@ -398,34 +363,45 @@ def build() -> None:
     # 3 — Objective
     slide = prs.slides.add_slide(blank)
     add_header(slide, "Research Objective", "", 3, seal)
-    text(slide, "Recommend ten fit-catalog channels the viewer has never watched.",
-         1.15, 1.14, 7.70, 0.42, size=20, color=NAVY, bold=True,
-         align=PP_ALIGN.CENTER)
-    flow = [
-        (0.63, draw_history_icon, "Past binary\nhistory"),
-        (2.98, draw_ranking_icon, "Full-catalog\nranking"),
-        (5.33, draw_topk_icon, "Top-10 unseen\nchannels"),
-        (7.68, draw_future_view_icon, "Future first-time\nviews"),
+    rect(slide, 0.74, 1.18, 8.52, 0.72, LIGHT, line=GRID)
+    text(slide, "CORE QUESTION", 0.98, 1.30, 1.22, 0.18,
+         size=10, color=TEAL, bold=True)
+    text(slide,
+         "Can past viewing history predict which unseen Twitch channels a viewer will discover next?",
+         2.12, 1.27, 6.82, 0.36, size=16.5, color=NAVY, bold=True,
+         align=PP_ALIGN.CENTER, valign=MSO_ANCHOR.MIDDLE)
+
+    objectives = [
+        (0.70, "01", "Ranking quality",
+         "Compare popularity, ItemKNN, BPR, and Hybrid on Top-10 unseen-channel recommendation."),
+        (3.52, "02", "Explanation",
+         "Identify why methods differ through BPR diagnostics, feature ablations, and subgroup analysis."),
+        (6.34, "03", "Robustness",
+         "Test whether conclusions persist across target windows and cohorts from 100K to 1M users."),
     ]
-    for i, (x, drawer, label) in enumerate(flow):
-        drawer(slide, x + 0.34, 2.05)
-        text(slide, label, x, 3.08, 1.80, 0.58, size=12.5, color=NAVY,
-             bold=True, align=PP_ALIGN.CENTER)
-        if i < len(flow) - 1:
-            add_process_arrow(slide, x + 1.87, 2.34)
-    rect(slide, 0.82, 4.16, 8.36, 0.035, GRID)
-    text(slide, "INPUT", 1.02, 4.47, 0.58, 0.22, size=10.5, color=TEAL, bold=True)
-    text(slide, "implicit feedback", 1.64, 4.47, 1.35, 0.22, size=11.5, color=GRAY)
-    text(slide, "OUTPUT", 3.78, 4.47, 0.68, 0.22, size=10.5, color=TEAL, bold=True)
-    text(slide, "personalized Top-10", 4.49, 4.47, 1.55, 0.22, size=11.5, color=GRAY)
-    text(slide, "TEST", 6.72, 4.47, 0.48, 0.22, size=10.5, color=TEAL, bold=True)
-    text(slide, "chronological holdout", 7.22, 4.47, 1.65, 0.22, size=11.5, color=GRAY)
+    for x, number, heading, body in objectives:
+        rect(slide, x, 2.24, 2.64, 1.78, WHITE, line=GRID)
+        rect(slide, x, 2.24, 2.64, 0.055, TEAL)
+        text(slide, number, x + 0.18, 2.48, 0.38, 0.24,
+             size=15, color=TEAL, bold=True)
+        text(slide, heading, x + 0.62, 2.46, 1.76, 0.28,
+             size=14, color=NAVY, bold=True)
+        text(slide, body, x + 0.20, 2.94, 2.24, 0.78,
+             size=11.5, color=GRAY, align=PP_ALIGN.CENTER)
+
+    rect(slide, 1.16, 4.40, 7.68, 0.45, LIGHT, line=GRID)
+    text(slide, "PREDICTION TARGET", 1.38, 4.54, 1.52, 0.18,
+         size=9.5, color=TEAL, bold=True)
+    text(slide, "Future first-time channel views in a chronological holdout",
+         2.92, 4.50, 5.55, 0.22, size=12, color=NAVY, bold=True,
+         align=PP_ALIGN.CENTER)
     add_notes(slide, "Research Objective", "1:25–2:10 (45 sec)",
-              "The objective is to recommend ten channels from the fit catalog that the viewer has never "
-              "watched. The input is past binary viewing history. The model ranks the full known catalog after "
-              "excluding seen channels, returns a Top-10 unseen list, and is evaluated against future first-time "
-              "views. The system uses implicit feedback only, produces a personalized ranking, and is tested in a "
-              "chronological holdout.")
+              "The central question is whether past implicit viewing history can predict which unseen Twitch "
+              "channels a viewer will discover next. We organize the study around three objectives. First, compare "
+              "the ranking quality of popularity, ItemKNN, BPR, and their hybrid. Second, explain performance "
+              "differences through BPR diagnostics, feature ablations, and subgroup analysis. Third, test whether "
+              "the conclusions persist across time and user scale. In every experiment, the prediction target is a "
+              "future first-time channel view in a chronological holdout.")
 
     # 4 — Dataset overview
     slide = prs.slides.add_slide(blank)
@@ -488,7 +464,7 @@ def build() -> None:
 
     # 6 — Models
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "Compared Recommendation Models",
+    add_header(slide, "Compared Models",
                "The comparison isolates global popularity, local co-view structure, and latent preference.",
                6, seal)
     rows = [
@@ -508,7 +484,7 @@ def build() -> None:
          align=PP_ALIGN.CENTER)
     text(slide, "BPR: Rendle et al., UAI 2009.", 0.92, 5.08, 2.60, 0.16,
          size=8.5, color=MID)
-    add_notes(slide, "Compared Recommendation Models", "4:45–6:15 (90 sec)",
+    add_notes(slide, "Compared Models", "4:45–6:15 (90 sec)",
               "Popularity and recent popularity establish whether personalization is useful. "
               "ItemKNN uses cosine similarity between channels based on shared viewers, directly "
               "retaining local co-view relationships. BPR learns user and item factors with a "
@@ -518,7 +494,7 @@ def build() -> None:
 
     # 7 — Implementation and tuning
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "Model Selection and Sparse Implementation",
+    add_header(slide, "Model Selection",
                "Sparse computation avoids materializing the 162K × 162K item-similarity matrix.",
                7, seal)
     picture_fit(slide, ROOT / "outputs/assignment2/figures/hybrid_ablation.png",
@@ -537,7 +513,7 @@ def build() -> None:
          size=9.5, color=TEAL, bold=True)
     text(slide, "Sparse blocks · top-200 neighbors · seed 258",
          7.47, 4.48, 1.96, 0.26, size=10.5, color=NAVY, bold=True)
-    add_notes(slide, "Model Selection and Sparse Implementation", "6:15–7:30 (75 sec)",
+    add_notes(slide, "Model Selection", "6:15–7:30 (75 sec)",
               "ItemKNN is computed with sparse block multiplication and only the top two hundred "
               "neighbors per channel are retained, so the dense item-item matrix is never created. "
               "Validation compares three neighborhood sizes, eight BPR configurations, and twenty "
@@ -547,7 +523,7 @@ def build() -> None:
 
     # 8 — Metrics
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "Evaluation Criteria and Statistical Inference",
+    add_header(slide, "Evaluation and Inference",
                "Ranking accuracy and recommendation breadth answer different scientific questions.",
                8, seal)
     metric_cards = [
@@ -573,7 +549,7 @@ def build() -> None:
     text(slide, "Model selection uses validation NDCG@10; all other metrics are diagnostic.",
          1.18, 4.90, 7.65, 0.26, size=12, color=TEAL, bold=True,
          align=PP_ALIGN.CENTER)
-    add_notes(slide, "Evaluation Criteria and Statistical Inference", "7:30–8:45 (75 sec)",
+    add_notes(slide, "Evaluation and Inference", "7:30–8:45 (75 sec)",
               "Recall measures how many future discoveries are recovered. NDCG additionally rewards "
               "placing correct channels earlier and is the primary validation metric. Hit rate asks "
               "whether a case has at least one success. Coverage asks how much of the catalog is ever "
@@ -583,7 +559,7 @@ def build() -> None:
 
     # 9 — Experiment 1: overall model comparison
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "Experiment 1: Overall Model Comparison", "", 9, seal)
+    add_header(slide, "Experiment 1: Model Comparison", "", 9, seal)
     add_experiment_question(slide,
                             "Which model best ranks unseen channels, and what accuracy–coverage trade-off follows?")
     picture_fit(slide, ROOT / "outputs/figures/test_accuracy.png",
@@ -600,7 +576,7 @@ def build() -> None:
          size=10.5, color=MID, align=PP_ALIGN.CENTER)
     add_experiment_finding(slide,
                            "Hybrid gains 4.48% NDCG over ItemKNN, but exposes 10.35 pp less of the catalog.")
-    add_notes(slide, "Experiment 1: Overall Model Comparison", "8:45–10:30 (105 sec)",
+    add_notes(slide, "Experiment 1: Model Comparison", "8:45–10:30 (105 sec)",
               "Experiment one asks which method best ranks unseen channels and whether accuracy changes catalog "
               "exposure. Hybrid is the most accurate model with NDCG point one three one five and recall point "
               "two two three four. ItemKNN is the strongest single model. All personalized methods "
@@ -612,7 +588,7 @@ def build() -> None:
 
     # 10 — Experiment 2: BPR failure and complementarity
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "Experiment 2: BPR Failure and Complementarity", "", 10, seal)
+    add_header(slide, "Experiment 2: BPR Analysis", "", 10, seal)
     add_experiment_question(slide,
                             "Why does BPR lag ItemKNN, and can its unique hits still improve the hybrid?")
     text(slide, "Failure hypotheses", 0.72, 1.62, 2.45, 0.28,
@@ -645,7 +621,7 @@ def build() -> None:
          align=PP_ALIGN.CENTER)
     add_experiment_finding(slide,
                            "BPR is weak alone but adds complementary hits; the hybrid gain is significant.")
-    add_notes(slide, "Experiment 2: BPR Failure and Complementarity", "10:30–12:10 (100 sec)",
+    add_notes(slide, "Experiment 2: BPR Analysis", "10:30–12:10 (100 sec)",
               "Experiment two asks why BPR underperforms and whether its errors differ enough to help a hybrid. "
               "BPR is disadvantaged by the long tail because many item factors receive little data. "
               "A missing interaction is also a noisy negative on a live platform, and one uniformly "
@@ -657,7 +633,7 @@ def build() -> None:
 
     # 11 — Experiment 3: representation and subgroup analysis
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "Experiment 3: Representation and Subgroup Analysis", "", 11, seal)
+    add_header(slide, "Experiment 3: Subgroup Analysis", "", 11, seal)
     add_experiment_question(slide,
                             "Do counts help, and which user or channel subgroups are hardest?")
     picture_fit(slide, ROOT / "outputs/assignment2/figures/feature_representation.png",
@@ -672,7 +648,7 @@ def build() -> None:
          bold=True, align=PP_ALIGN.CENTER)
     add_experiment_finding(slide,
                            "Distinct-channel history beats counts; sparse targets and long histories are hardest.")
-    add_notes(slide, "Experiment 3: Representation and Subgroup Analysis", "12:10–13:40 (90 sec)",
+    add_notes(slide, "Experiment 3: Subgroup Analysis", "12:10–13:40 (90 sec)",
               "Experiment three asks whether interaction counts improve the representation and which subgroups "
               "remain hardest. Binary ItemKNN outperforms count weighting for new-channel discovery, indicating that "
               "the set of distinct channels matters more than repeatedly amplifying familiar channels. "
@@ -762,7 +738,7 @@ def build() -> None:
 
     # 15 — Limitations and future work
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "Limitations and Next Experiments",
+    add_header(slide, "Limitations and Next Steps",
                "The dominant open problems are candidate generation, live availability, and objective alignment.",
                15, seal)
     rows = [
@@ -779,7 +755,7 @@ def build() -> None:
          "A stronger model alone cannot solve missing candidates or unavailable channels.",
          1.05, 4.85, 7.90, 0.28, size=14, color=TEAL, bold=True,
          align=PP_ALIGN.CENTER)
-    add_notes(slide, "Limitations and Next Experiments", "17:25–18:45 (80 sec)",
+    add_notes(slide, "Limitations and Next Steps", "17:25–18:45 (80 sec)",
               "The main limitations are not only model capacity. Catalog-cold channels cannot be ranked "
               "without content or creator features. Missing exact live status makes negative feedback noisy. "
               "Uniform BPR negatives are usually easy and should be replaced with hard or popularity-aware "

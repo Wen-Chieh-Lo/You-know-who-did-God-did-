@@ -20,7 +20,7 @@ Twitch presents a difficult discovery setting. The subset already contains more 
 
 Timing: 1:25–2:10 (45 sec)
 
-The objective is to recommend ten channels from the fit catalog that the viewer has never watched. The input is past binary viewing history. The model ranks the full known catalog after excluding seen channels, returns a Top-10 unseen list, and is evaluated against future first-time views. The system uses implicit feedback only, produces a personalized ranking, and is tested in a chronological holdout.
+The central question is whether past implicit viewing history can predict which unseen Twitch channels a viewer will discover next. We organize the study around three objectives. First, compare the ranking quality of popularity, ItemKNN, BPR, and their hybrid. Second, explain performance differences through BPR diagnostics, feature ablations, and subgroup analysis. Third, test whether the conclusions persist across time and user scale. In every experiment, the prediction target is a future first-time channel view in a chronological holdout.
 
 ## 4. Dataset Overview
 
@@ -34,37 +34,37 @@ Timing: 3:25–4:45 (80 sec)
 
 The first thirty days fit candidate models, the next six select hyperparameters, and the final seven form the held-out test. After selection, the models are refit through day thirty-five. Each user is ranked against the full fit catalog after removing channels already watched. Every mapping and statistic uses only past data. Because users contribute multiple daily cases, the paired bootstrap resamples users and keeps all cases belonging to each sampled user.
 
-## 6. Compared Recommendation Models
+## 6. Compared Models
 
 Timing: 4:45–6:15 (90 sec)
 
 Popularity and recent popularity establish whether personalization is useful. ItemKNN uses cosine similarity between channels based on shared viewers, directly retaining local co-view relationships. BPR learns user and item factors with a pairwise objective. Because the two personalized models make different errors, the hybrid standardizes their candidate score distributions per user and combines them. A popularity penalty was also evaluated as a diversity control.
 
-## 7. Model Selection and Sparse Implementation
+## 7. Model Selection
 
 Timing: 6:15–7:30 (75 sec)
 
 ItemKNN is computed with sparse block multiplication and only the top two hundred neighbors per channel are retained, so the dense item-item matrix is never created. Validation compares three neighborhood sizes, eight BPR configurations, and twenty hybrid settings. The selected hybrid uses alpha point seven five and no popularity penalty. The sharp drop at alpha one is BPR alone, illustrating that BPR is much weaker than the mixed model. Test performance is not used for any of these choices.
 
-## 8. Evaluation Criteria and Statistical Inference
+## 8. Evaluation and Inference
 
 Timing: 7:30–8:45 (75 sec)
 
 Recall measures how many future discoveries are recovered. NDCG additionally rewards placing correct channels earlier and is the primary validation metric. Hit rate asks whether a case has at least one success. Coverage asks how much of the catalog is ever shown, which is not the same as correctness. Novelty and long-tail exposure measure concentration, while candidate coverage identifies answers that no collaborative model could retrieve because the channel was absent during fitting.
 
-## 9. Experiment 1: Overall Model Comparison
+## 9. Experiment 1: Model Comparison
 
 Timing: 8:45–10:30 (105 sec)
 
 Experiment one asks which method best ranks unseen channels and whether accuracy changes catalog exposure. Hybrid is the most accurate model with NDCG point one three one five and recall point two two three four. ItemKNN is the strongest single model. All personalized methods beat popularity, establishing that viewer history contains predictive signal. The hybrid gain over ItemKNN is four point four eight percent in NDCG, but coverage falls from about thirty-seven to twenty-six percent. Count-weighted ItemKNN is less accurate yet exposes the largest share of the catalog. Thus the hybrid is best for ranking accuracy, but not for every diversity objective.
 
-## 10. Experiment 2: BPR Failure and Complementarity
+## 10. Experiment 2: BPR Analysis
 
 Timing: 10:30–12:10 (100 sec)
 
 Experiment two asks why BPR underperforms and whether its errors differ enough to help a hybrid. BPR is disadvantaged by the long tail because many item factors receive little data. A missing interaction is also a noisy negative on a live platform, and one uniformly sampled negative per positive is typically trivial. Finally, random pairwise training does not exactly match unseen-channel top-ten ranking. Five independent seeds remain far below ItemKNN, so this is not an unlucky initialization. Nevertheless, BPR uniquely retrieves more than five thousand positives. That complementary signal yields a modest hybrid gain whose user-clustered confidence interval excludes zero after correction.
 
-## 11. Experiment 3: Representation and Subgroup Analysis
+## 11. Experiment 3: Subgroup Analysis
 
 Timing: 12:10–13:40 (90 sec)
 
@@ -88,7 +88,7 @@ Timing: 16:10–17:25 (75 sec)
 
 LiveRec uses the same underlying Twitch data, but its target is currently available live content and repeat behavior. This project isolates discovery of never-watched channels and only has a seven-day activity proxy, so numerical results should not be compared directly. The key lesson borrowed from LiveRec is that exact availability matters. BPR provides the pairwise ranking foundation, while LightGCN is a relevant graph extension for future work.
 
-## 15. Limitations and Next Experiments
+## 15. Limitations and Next Steps
 
 Timing: 17:25–18:45 (80 sec)
 
