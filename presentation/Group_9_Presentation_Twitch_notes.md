@@ -22,11 +22,11 @@ Timing: 1:25–2:10 (45 sec)
 
 The objective is to recommend ten channels from the fit catalog that the viewer has never watched. The input is past binary viewing history. The model ranks the full known catalog after excluding seen channels, returns a Top-10 unseen list, and is evaluated against future first-time views. The system uses implicit feedback only, produces a personalized ranking, and is tested in a chronological holdout.
 
-## 4. Dataset and Exploratory Analysis
+## 4. Full Dataset and Cohort Construction
 
 Timing: 2:10–3:25 (75 sec)
 
-The public UCSD Twitch subset contains one hundred thousand users, over one hundred sixty-two thousand channels, and about three million interactions across forty-three relative days. There are no ratings, categories, or text features. The time series shows repeat interactions increasing across the observation period, which motivates separating discovery from return behavior. About twelve percent of novel test positives are absent from the fit catalog entirely, establishing a hard candidate-generation limit for collaborative methods.
+The complete Twitch source contains over fifteen point five million users, nearly four hundred seventy-five million interaction rows, and about seven hundred ninety thousand raw channel names across forty-three relative days. We stream and validate the complete file rather than reading a prefix. Scalability cohorts are then formed by deterministic systematic user sampling with seed two fifty-eight, while preserving every interaction for each selected user. This produces matched cohorts from one hundred thousand to one million users. The primary accuracy benchmark is the official one-hundred-thousand-user subset, so it is distinct from the full-source one-hundred-thousand-user scalability cohort. The next slide applies the same chronological protocol.
 
 ## 5. Prediction Task and Evaluation Protocol
 

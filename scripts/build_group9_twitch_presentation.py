@@ -416,34 +416,75 @@ def build() -> None:
               "views. The system uses implicit feedback only, produces a personalized ranking, and is tested in a "
               "chronological holdout.")
 
-    # 4 — Dataset and EDA
+    # 4 — Full source and cohort construction
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "Dataset: 100K Users and 3.05M Interactions",
-               "The interaction matrix is highly sparse, long-tailed, and dominated by implicit signals.",
-               4, seal)
-    picture_fit(slide, ROOT / "outputs/figures/new_vs_return.png",
-                0.45, 1.46, 5.55, 3.55)
-    add_metric_line(slide, 6.30, 1.65, "100K", "viewers", TEAL)
-    add_metric_line(slide, 7.95, 1.65, "162.6K", "channels", BLUE)
-    add_metric_line(slide, 6.30, 2.70, "3.05M", "interactions", GREEN)
-    add_metric_line(slide, 7.95, 2.70, "43", "relative days", ORANGE)
-    text(slide, "Key observations", 6.22, 3.80, 2.5, 0.30,
-         size=14.5, color=NAVY, bold=True)
-    bullets(slide, [
-        "No ratings or content metadata",
-        "Repeat viewing increases across the observation period",
-        "~12% of novel test positives are catalog-cold",
-    ], 6.20, 4.12, 3.10, 0.90, size=12.5, space_after=3)
-    text(slide, "Source: UCSD Twitch dataset; Rappaz, McAuley, and Aberer, RecSys 2021.",
-         0.58, 5.05, 5.70, 0.18, size=8.5, color=MID)
-    add_notes(slide, "Dataset and Exploratory Analysis", "2:10–3:25 (75 sec)",
-              "The public UCSD Twitch subset contains one hundred thousand users, over one "
-              "hundred sixty-two thousand channels, and about three million interactions across "
-              "forty-three relative days. There are no ratings, categories, or text features. "
-              "The time series shows repeat interactions increasing across the observation period, "
-              "which motivates separating discovery from return behavior. About twelve percent of "
-              "novel test positives are absent from the fit catalog entirely, establishing a hard "
-              "candidate-generation limit for collaborative methods.")
+    add_header(slide, "Full Dataset and Cohort Construction", "", 4, seal)
+
+    # Complete source: the full compressed file was streamed and validated.
+    rect(slide, 0.56, 1.22, 2.32, 3.54, WHITE, line=GRID)
+    rect(slide, 0.56, 1.22, 2.32, 0.52, NAVY)
+    text(slide, "FULL TWITCH SOURCE", 0.68, 1.36, 2.08, 0.20,
+         size=10.5, color=WHITE, bold=True, align=PP_ALIGN.CENTER)
+    source_metrics = [
+        (0.68, 1.98, "15.5M", "users", TEAL),
+        (1.76, 1.98, "474.7M", "interaction rows", BLUE),
+        (0.68, 3.12, "790.1K", "channel names", GREEN),
+        (1.76, 3.12, "43", "relative days", ORANGE),
+    ]
+    for x, y, value, label, color in source_metrics:
+        text(slide, value, x, y, 0.98, 0.30,
+             size=15.5, color=color, bold=True, align=PP_ALIGN.CENTER)
+        text(slide, label, x, y + 0.39, 0.98, 0.40,
+             size=9.8, color=GRAY, align=PP_ALIGN.CENTER)
+    text(slide, "Five fields: user, stream, channel, start slot, stop slot",
+         0.78, 4.43, 1.88, 0.26, size=9.5, color=MID, align=PP_ALIGN.CENTER)
+
+    # Processing steps use a consistent three-stage vertical flow.
+    process_steps = [
+        (1.34, "1", "Complete scan", "Validate all 474.7M rows"),
+        (2.48, "2", "Select users", "Systematic sampling · seed 258"),
+        (3.62, "3", "Preserve histories", "Keep all rows for selected users"),
+    ]
+    for index, (y, number, heading, body) in enumerate(process_steps):
+        oval(slide, 3.25, y + 0.08, 0.40, 0.40, TEAL)
+        text(slide, number, 3.25, y + 0.16, 0.40, 0.18,
+             size=11, color=WHITE, bold=True, align=PP_ALIGN.CENTER)
+        text(slide, heading, 3.82, y, 1.88, 0.26,
+             size=12.5, color=NAVY, bold=True)
+        text(slide, body, 3.82, y + 0.34, 1.92, 0.42,
+             size=10.5, color=GRAY)
+        if index < len(process_steps) - 1:
+            rect(slide, 3.43, y + 0.55, 0.035, 0.56, GRID)
+
+    # Matched scalability cohorts constructed from the complete source.
+    text(slide, "SCALING COHORTS FROM FULL SOURCE", 6.10, 1.24, 3.40, 0.22,
+         size=10.5, color=NAVY, bold=True, align=PP_ALIGN.CENTER)
+    add_flat_table(slide, [
+        ["Users", "Rows", "Channels"],
+        ["100K", "3.06M", "162K"],
+        ["200K", "6.14M", "233K"],
+        ["500K", "15.27M", "355K"],
+        ["1M", "30.59M", "465K"],
+    ], 6.10, 1.62, [1.00, 1.20, 1.20], row_h=0.50, font_size=11.2)
+    rect(slide, 6.10, 4.34, 3.40, 0.42, LIGHT, line=GRID)
+    text(slide, "Same seed and complete user histories at every scale",
+         6.25, 4.47, 3.10, 0.18, size=10.2, color=TEAL,
+         bold=True, align=PP_ALIGN.CENTER)
+
+    rect(slide, 0.72, 4.94, 8.62, 0.035, TEAL)
+    text(slide, "Benchmark:", 0.82, 5.05, 0.82, 0.18,
+         size=9.2, color=NAVY, bold=True)
+    text(slide, "Official 100K subset (3.052M rows), distinct from the full-source 100K scalability cohort.",
+         1.65, 5.04, 7.50, 0.20, size=9.2, color=GRAY)
+    add_notes(slide, "Full Dataset and Cohort Construction", "2:10–3:25 (75 sec)",
+              "The complete Twitch source contains over fifteen point five million users, nearly four hundred "
+              "seventy-five million interaction rows, and about seven hundred ninety thousand raw channel names "
+              "across forty-three relative days. We stream and validate the complete file rather than reading a "
+              "prefix. Scalability cohorts are then formed by deterministic systematic user sampling with seed "
+              "two fifty-eight, while preserving every interaction for each selected user. This produces matched "
+              "cohorts from one hundred thousand to one million users. The primary accuracy benchmark is the "
+              "official one-hundred-thousand-user subset, so it is distinct from the full-source one-hundred-"
+              "thousand-user scalability cohort. The next slide applies the same chronological protocol.")
 
     # 5 — Task and protocol
     slide = prs.slides.add_slide(blank)
