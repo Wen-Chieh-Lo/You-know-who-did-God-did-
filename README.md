@@ -96,10 +96,10 @@ The resulting tables and presentation-ready figures are written under
 `outputs/assignment2/`; their interpretation is summarized in
 [`reports/ASSIGNMENT_EXPERIMENTS.md`](reports/ASSIGNMENT_EXPERIMENTS.md).
 
-The reproducible 17-slide English CSE 258 recording deck, Traditional-Chinese deck,
-and timed speaker notes are in [`presentation/`](presentation/README.md). Rebuild
-them with the scripts in `scripts/` after installing the optional `presentation`
-dependencies.
+The primary template-based English research deck, the earlier 17-slide English and
+Traditional-Chinese decks, and timed speaker notes are in
+[`presentation/`](presentation/README.md). Rebuild them with the scripts in `scripts/`
+after installing the optional `presentation` dependencies.
 
 Additional no-metadata models (LightGCN, SASRec, GRU4Rec, time-decayed ItemKNN,
 and a clearly labelled LiveRec-like seven-day availability proxy) are reproduced with:

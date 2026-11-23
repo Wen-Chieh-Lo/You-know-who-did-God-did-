@@ -2,7 +2,12 @@
 
 Files:
 
-- `cse258_assignment2_20min_en.pptx`: the primary English CSE 258 recording deck.
+- `Group_9_Presentation_Twitch.pptx`: the primary English research-style deck,
+  rebuilt from the repository-root `Group_9_Presentation.pptx` template. It preserves
+  the template's 16:9 dimensions, typography, UCSD seal, title placement, and color
+  palette while replacing the original topic and course footer.
+- `Group_9_Presentation_Twitch_notes.md`: timed narration for the template-based deck.
+- `cse258_assignment2_20min_en.pptx`: the earlier standalone English CSE 258 deck.
 - `cse258_assignment2_speaker_notes_en.md`: timed English narration for every slide;
   the notes are also embedded in the PowerPoint speaker-notes area.
 - `assignment2_20min_zh_tw.pptx`: 17-slide Traditional-Chinese presentation for an
@@ -18,6 +23,7 @@ To rebuild it:
 
 ```bash
 python -m pip install -e '.[presentation]'
+python scripts/build_group9_twitch_presentation.py
 python scripts/build_assignment2_slides_en.py
 python scripts/build_assignment2_slides.py
 ```
