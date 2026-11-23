@@ -72,6 +72,11 @@ and test user samples for ranking. See
 [`reports/MILLION_USER_REPORT.md`](reports/MILLION_USER_REPORT.md) for the results,
 scope, and limitations.
 
+The repository versions compact experiment evidence—including figures, metric
+tables, manifests, selected hyperparameters, and JSON summaries. Large reproducible
+artifacts such as per-user recommendation lists, mappings, logs, raw data, DuckDB
+files, and model intermediates remain excluded by `.gitignore`.
+
 Assignment-specific validity, temporal-robustness, feature-ablation, data-quality,
 and scaling analyses are reproduced after the main 100k experiment with:
 

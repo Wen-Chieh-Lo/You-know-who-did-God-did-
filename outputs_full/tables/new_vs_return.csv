@@ -1,0 +1,87 @@
+day,interaction_type,interactions
+0,new channel,70655
+0,return,2966
+1,new channel,58370
+1,return,9788
+2,new channel,50824
+2,return,13362
+3,new channel,48823
+3,return,14897
+4,new channel,49109
+4,return,17839
+5,new channel,42933
+5,return,18818
+6,new channel,39803
+6,return,21827
+7,new channel,44634
+7,return,26580
+8,new channel,38816
+8,return,27543
+9,new channel,37885
+9,return,28522
+10,new channel,42741
+10,return,30229
+11,new channel,40793
+11,return,29978
+12,new channel,36976
+12,return,31563
+13,new channel,32784
+13,return,33483
+14,new channel,31944
+14,return,33681
+15,new channel,34659
+15,return,37834
+16,new channel,33701
+16,return,39265
+17,new channel,37521
+17,return,38336
+18,new channel,34306
+18,return,34657
+19,new channel,31270
+19,return,38658
+20,new channel,31533
+20,return,45571
+21,new channel,30098
+21,return,41589
+22,new channel,29078
+22,return,39736
+23,new channel,30411
+23,return,43553
+24,new channel,32052
+24,return,40878
+25,new channel,34413
+25,return,42870
+26,new channel,27376
+26,return,40154
+27,new channel,29494
+27,return,46999
+28,new channel,28840
+28,return,45783
+29,new channel,27535
+29,return,47220
+30,new channel,29134
+30,return,43444
+31,new channel,31803
+31,return,42986
+32,new channel,31028
+32,return,42331
+33,new channel,26922
+33,return,40306
+34,new channel,27112
+34,return,44178
+35,new channel,27008
+35,return,44281
+36,new channel,28999
+36,return,49116
+37,new channel,28136
+37,return,44780
+38,new channel,28273
+38,return,45180
+39,new channel,30887
+39,return,48653
+40,new channel,25958
+40,return,47327
+41,new channel,25493
+41,return,51476
+42,new channel,16113
+42,return,29666

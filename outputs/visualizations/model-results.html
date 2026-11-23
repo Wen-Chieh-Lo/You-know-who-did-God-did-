@@ -1,0 +1,38 @@
+<section id="twitch-model-results" data-viz-composition>
+  <div data-viz-container></div>
+  <script type="application/json" data-viz-chart>
+    {
+      "id": "twitch-model-results",
+      "title": "四種推薦方法的測試結果",
+      "description": "數值越高越好。Recall@10 衡量前 10 名找回多少正確頻道；NDCG@10 同時重視命中與排名位置。",
+      "height": 360,
+      "spec": {
+        "type": "bar",
+        "x": "方法",
+        "y": ["Recall@10", "NDCG@10"],
+        "yLabel": "分數（越高越好）",
+        "startAtZero": true,
+        "showValues": true,
+        "showLegend": true,
+        "valueFormat": {
+          "style": "decimal",
+          "minimumFractionDigits": 3,
+          "maximumFractionDigits": 3
+        }
+      },
+      "columns": ["方法", "Recall@10", "NDCG@10"],
+      "rows": [
+        ["Popularity", 0.06068, 0.03702],
+        ["BPR", 0.09328, 0.05420],
+        ["ItemKNN", 0.21437, 0.12584],
+        ["Hybrid", 0.22342, 0.13148]
+      ]
+    }
+  </script>
+</section>
+<script type="module">
+  import { mountChart } from "https://persistent.oaistatic.com/plugins/visualize/charts/1.2.3/element.js";
+  const root = document.getElementById("twitch-model-results");
+  const config = JSON.parse(root.querySelector("[data-viz-chart]").textContent);
+  mountChart(root.querySelector("[data-viz-container]"), config);
+</script>

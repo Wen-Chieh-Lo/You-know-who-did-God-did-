@@ -1,0 +1,17 @@
+{
+  "outputs_dir": "outputs/advanced",
+  "factors": 64,
+  "lightgcn_layers": 2,
+  "lightgcn_epochs": 10,
+  "lightgcn_learning_rate": 0.01,
+  "lightgcn_regularization": 0.0001,
+  "lightgcn_samples_per_epoch": 250000,
+  "sequential_epochs": 8,
+  "sequential_batch_size": 512,
+  "sequential_learning_rate": 0.001,
+  "max_sequence_length": 50,
+  "time_decay": 0.1,
+  "item_knn_neighbors": 200,
+  "item_knn_batch_size": 512,
+  "ranking_batch_size": 64
+}

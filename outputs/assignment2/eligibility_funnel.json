@@ -1,0 +1,11 @@
+{
+  "total_dataset_users": 100000,
+  "users_active_in_test": 74265,
+  "test_active_users_known_in_fit": 72887,
+  "known_users_with_novel_positive": 55693,
+  "known_users_with_catalog_covered_positive": 53212,
+  "all_novel_positives": 174138,
+  "catalog_covered_novel_positives": 153277,
+  "all_novel_user_day_cases": 114310,
+  "catalog_covered_user_day_cases": 104818
+}

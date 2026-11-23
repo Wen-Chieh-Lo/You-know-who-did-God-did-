@@ -1,0 +1,4 @@
+fold,fit_days,target_days,target_rows,known_user_target_rows,novel_user_channel_positives,candidate_covered_positives,candidate_coverage,evaluation_cases,evaluated_users,elapsed_seconds
+early,0-17,18-23,431143,414281,171768,149640,0.8711750733547576,102249,52605,643.04
+middle,0-23,24-29,446656,431361,168262,148048,0.8798659233813934,100945,52874,719.89
+late,0-35,36-42,506466,493006,174138,153277,0.8802042058597205,104818,53212,

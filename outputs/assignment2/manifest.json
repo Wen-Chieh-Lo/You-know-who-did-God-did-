@@ -1,0 +1,29 @@
+{
+  "outputs_dir": "outputs/assignment2",
+  "bootstrap_rows": 12,
+  "backtest_rows": 15,
+  "period_level_rows": 6,
+  "bpr_seed_rows": 10,
+  "data_quality": {
+    "rows": 3051733,
+    "missing_cells": 0,
+    "exact_duplicate_rows": 0,
+    "stop_before_start": 0,
+    "zero_duration_rows": 0,
+    "nonpositive_user_ids": 0,
+    "blank_channel_names": 0
+  },
+  "figures": [
+    "bpr_seed_stability.png",
+    "channel_popularity_subgroups.png",
+    "eligibility_funnel.png",
+    "feature_representation.png",
+    "hybrid_ablation.png",
+    "period_level_cold_start.png",
+    "rolling_backtest.png",
+    "scaling.png",
+    "user_history_subgroups.png",
+    "validation_sample_stability.png"
+  ],
+  "validation_stability_rows": 30
+}

@@ -1,0 +1,4 @@
+experiment,users,interactions,channels,wall_clock_minutes,runtime_source
+official_100k,100000,3051733,162625,28.233333333333334,filesystem birth-to-final-write interval of run log
+independent_100k,99660,3034146,161021,32.95,filesystem birth-to-final-write interval of run log
+one_million,1000000,30585070,464657,77.08333333333333,filesystem birth-to-final-write interval of run log

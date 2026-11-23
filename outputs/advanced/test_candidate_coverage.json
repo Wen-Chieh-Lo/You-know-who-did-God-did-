@@ -1,0 +1,8 @@
+{
+  "target_rows": 506466,
+  "known_user_target_rows": 493006,
+  "novel_user_channel_positives": 174138,
+  "candidate_covered_positives": 153277,
+  "candidate_coverage": 0.8802042058597205,
+  "evaluation_cases": 104818
+}

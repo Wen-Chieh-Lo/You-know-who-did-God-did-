@@ -1,0 +1,12 @@
+{
+  "source_path": "data/raw/full_a.csv.gz",
+  "source_rows": 474676930,
+  "source_users": 15524309,
+  "target_users": 1000000,
+  "selected_users": 1000000,
+  "selected_rows": 30585070,
+  "selected_channels": 464657,
+  "selection": "exact systematic sample over consecutive anonymized user IDs",
+  "cohort_path": "data/processed/full_dataset_user_cohort_1m.csv",
+  "elapsed_seconds": 321.16
+}
