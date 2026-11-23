@@ -452,6 +452,23 @@ Hybrid 在 cold viewers 上仍勝過 ItemKNN，表示即使只有幾個觀看頻
 signal 加上 BPR 的補充訊號仍可建立有效個人化。Popularity 對 cold viewers 比對全體
 使用者稍強，因為歷史太短時全域熱門度是一個合理 fallback；但它仍明顯輸給個人化模型。
 
+為確認最極端的情況，進一步將 history length 細分後，Hybrid 在每一組仍是第一名：
+
+| 已看過的不同頻道數 | Users | Hybrid NDCG | ItemKNN NDCG | Time-decayed ItemKNN NDCG | 該組最佳模型 |
+|---|---:|---:|---:|---:|---|
+| 1 | 1,050 | **0.13238** | 0.12326 | 0.11074 | Hybrid |
+| 2–3 | 5,067 | **0.17312** | 0.16379 | 0.15013 | Hybrid |
+| 4–6 | 8,665 | **0.17022** | 0.15998 | 0.14618 | Hybrid |
+| 7–12 | 12,125 | **0.15654** | 0.14944 | 0.13782 | Hybrid |
+| 13–24 | 13,654 | **0.13418** | 0.12944 | 0.12597 | Hybrid |
+| 25+ | 12,651 | **0.09012** | 0.08743 | 0.08974 | Hybrid |
+
+表現並非「歷史越多越好」。只看過一個頻道時個人訊號不足；2–6 個頻道形成最有效的
+興趣輪廓；歷史很長時，容易推薦的相似頻道可能已被消耗，舊興趣也會增加噪音，所以
+NDCG 持續下降。值得注意的是，在 25+ 組中 time-decayed ItemKNN 的 NDCG 0.08974
+幾乎追平 Hybrid 0.09012，且超越普通 ItemKNN。這是目前最明顯的模型 specialization：
+對歷史很長的使用者，降低陳舊互動的權重有幫助；對短歷史使用者則沒有反超 Hybrid。
+
 真正零歷史的新使用者不在這個 test protocol 中。對這種 user cold start，ItemKNN、
 BPR、LightGCN 和 sequence models 都沒有個人訊號，實際系統需要 popularity、context、
 onboarding preferences 或 demographic/session features 作 fallback。
