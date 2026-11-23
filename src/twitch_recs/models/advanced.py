@@ -259,7 +259,8 @@ class SequentialRecommender:
         all_user_factors = np.zeros((fit.matrix.shape[0], self.factors), dtype=np.float32)
         with torch.no_grad():
             for start in range(0, len(sequences), self.batch_size):
-                batch = sequences[start:start + self.batch_size]
+                batch = [seq[-self.max_length:] for seq in
+                         sequences[start:start + self.batch_size]]
                 lengths = np.asarray([max(1, len(seq)) for seq in batch], dtype=np.int64)
                 width = int(lengths.max())
                 values = np.zeros((len(batch), width), dtype=np.int64)

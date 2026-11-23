@@ -10,13 +10,14 @@ from .pipeline import finalize_existing_experiment, run_experiment
 from .million_pipeline import build_disk_store, run_million_experiment
 from .full_scale import extract_deterministic_user_cohort, extract_systematic_exact_cohort
 from .assignment_analysis import run_assignment_analysis
+from .advanced_pipeline import run_advanced_experiment
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Twitch new-channel recommendation experiment")
     subparsers = parser.add_subparsers(dest="command", required=True)
     for name in ("download", "eda", "run", "all", "finalize", "extract-full",
-                 "extract-million", "run-million", "assignment-analysis"):
+                 "extract-million", "run-million", "assignment-analysis", "advanced"):
         command = subparsers.add_parser(name)
         command.add_argument("--config", default="configs/full.yaml")
         if name == "download":
@@ -49,6 +50,9 @@ def main() -> None:
         return
     if args.command == "assignment-analysis":
         print(json.dumps(run_assignment_analysis(config), indent=2))
+        return
+    if args.command == "advanced":
+        print(json.dumps(run_advanced_experiment(config), indent=2))
         return
     if args.command == "finalize":
         print(json.dumps(finalize_existing_experiment(config), indent=2))

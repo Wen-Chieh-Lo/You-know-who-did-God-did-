@@ -26,4 +26,20 @@ evaluation:
   recommendation_user_batch: 16
   long_tail_quantile: 0.80
 outputs_dir: outputs
+advanced:
+  outputs_dir: outputs/advanced_quick
+  factors: 16
+  lightgcn_layers: 1
+  lightgcn_epochs: 1
+  lightgcn_learning_rate: 0.01
+  lightgcn_regularization: 0.0001
+  lightgcn_samples_per_epoch: 10000
+  sequential_epochs: 1
+  sequential_batch_size: 1024
+  sequential_learning_rate: 0.001
+  max_sequence_length: 20
+  time_decay: 0.10
+  item_knn_neighbors: 50
+  item_knn_batch_size: 512
+  ranking_batch_size: 128
 

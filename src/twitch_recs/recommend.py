@@ -68,6 +68,44 @@ def single_model_recommendations(users: Iterable[int], interactions: sparse.csr_
     return pd.DataFrame(rows, columns=["user_idx", "rank", "item_idx", "score"])
 
 
+def factor_recommendations(users: Iterable[int], interactions: sparse.csr_matrix,
+                           user_factors: np.ndarray, item_factors: np.ndarray,
+                           k: int = 10, candidate_mask: np.ndarray | None = None,
+                           batch_size: int = 64, device: str | None = None) -> pd.DataFrame:
+    """GPU-batched exact top-k for dot-product recommenders."""
+    try:
+        import torch
+    except (ImportError, OSError) as exc:
+        raise RuntimeError("factor_recommendations requires a working PyTorch installation") from exc
+    selected_device = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
+    users = np.asarray(list(users), dtype=np.int64)
+    item_tensor = torch.as_tensor(item_factors, dtype=torch.float32, device=selected_device)
+    allowed = None
+    if candidate_mask is not None:
+        allowed = torch.as_tensor(candidate_mask, dtype=torch.bool, device=selected_device)
+    rows: list[tuple[int, int, int, float]] = []
+    for start in tqdm(range(0, len(users), batch_size), desc="Factor top-k", leave=False):
+        batch_users = users[start:start + batch_size]
+        batch_factors = torch.as_tensor(
+            user_factors[batch_users], dtype=torch.float32, device=selected_device
+        )
+        scores = batch_factors @ item_tensor.T
+        if allowed is not None:
+            scores[:, ~allowed] = -torch.inf
+        for row, user in enumerate(batch_users):
+            seen = torch.as_tensor(interactions[int(user)].indices, dtype=torch.long,
+                                   device=selected_device)
+            scores[row, seen] = -torch.inf
+        values, items = torch.topk(scores, k=min(k, scores.shape[1]), dim=1, sorted=True)
+        values_np = values.detach().cpu().numpy()
+        items_np = items.detach().cpu().numpy()
+        for row, user in enumerate(batch_users):
+            for rank, (item, score) in enumerate(zip(items_np[row], values_np[row]), 1):
+                if np.isfinite(score):
+                    rows.append((int(user), rank, int(item), float(score)))
+    return pd.DataFrame(rows, columns=["user_idx", "rank", "item_idx", "score"])
+
+
 def personalized_recommendations(
     users: Iterable[int], interactions: sparse.csr_matrix, item_model: ItemKNN,
     bpr_model: BPR, popularity: np.ndarray, k: int = 10,

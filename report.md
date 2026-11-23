@@ -265,6 +265,42 @@ Hybrid 對歷史較短的使用者較有效：過去看過約 1–6 個頻道者
 5. 建立固定 test/candidate catalog 的 nested learning curve，真正隔離資料量效果。
 6. 進行線上 A/B test，同時評估觀看時間、滿意度、多樣性與創作者公平曝光。
 
+## 7. 新增模型實驗：LightGCN 與序列模型
+
+為檢查更複雜的模型能否改善高度稀疏的 implicit-feedback 問題，專案另外加入
+LightGCN、SASRec、GRU4Rec、time-decayed ItemKNN，以及受固定資料限制的
+LiveRec-like 7-day active proxy。它們全部使用相同 train/validation/test 時間切分、
+相同 fit catalog 與相同 53,212 位 eligible test users。
+
+| 模型 | Recall@10 | NDCG@10 | Catalog Coverage | Long-tail Exposure |
+|---|---:|---:|---:|---:|
+| Hybrid | **0.22342** | **0.13148** | 0.26363 | 0.08031 |
+| ItemKNN | 0.21437 | 0.12584 | 0.36708 | 0.14585 |
+| Time-decayed ItemKNN | 0.20509 | 0.12046 | **0.43612** | 0.21592 |
+| LightGCN | 0.10286 | 0.05981 | 0.00870 | 0.00818 |
+| BPR | 0.09328 | 0.05420 | 0.00617 | 0.00162 |
+| GRU4Rec | 0.00966 | 0.00637 | 0.11431 | 0.72006 |
+| LiveRec-like active-7d proxy | 0.00129 | 0.00055 | 0.10069 | 0.64670 |
+| SASRec | 0.00046 | 0.00021 | 0.14970 | 0.80560 |
+
+新增模型沒有超越 Hybrid。LightGCN 相對 BPR 的 NDCG 提高約 10.4%，證明圖上的
+高階鄰居傳播比單純 matrix factorization 多捕捉了一些訊號，但仍遠低於直接保存局部
+共同觀看關係的 ItemKNN。Time-decayed ItemKNN 是最有價值的新增 ablation：它的
+NDCG 比 binary ItemKNN 低約 4.3%，卻把 catalog coverage 從 36.71% 提高至 43.61%，
+顯示 recency weighting 帶來的是多樣性而非準確度改善。
+
+SASRec 與 GRU4Rec 的差結果揭露重要的 task mismatch。原始互動序列主要包含使用者
+反覆回訪既有實況主，因此 next-item training 會學到 repeat consumption；但本專案在
+推薦時排除所有歷史頻道，只把首次觀看的新頻道視為 positive。模型學到最強的訊號在
+evaluation 時被刻意移除，造成極低 Recall/NDCG。高 novelty 與 long-tail exposure 並非
+成功，而是推薦大量非常冷門但不正確的頻道。若要公平發揮 sequence model，應改用
+「下一個觀看頻道（包含回訪）」任務，或重新建立只在 novel-channel events 上訓練的
+loss 與 hard-negative sampling。
+
+完整模型設定記錄在 [`configs/full.yaml`](configs/full.yaml) 的 `advanced` 區段；執行後的
+Validation、Test 表格與具名推薦清單會寫入本機 `outputs/advanced/`。該目錄依專案規則
+不納入版本控制，以避免把大型衍生資料推送至 GitHub。
+
 ## 參考文獻
 
 1. Rappaz, J., McAuley, J., & Aberer, K. (2021). [Recommendation on Live-Streaming Platforms: Dynamic Availability and Repeat Consumption](https://cseweb.ucsd.edu/~jmcauley/pdfs/recsys21b.pdf). *RecSys '21*.
