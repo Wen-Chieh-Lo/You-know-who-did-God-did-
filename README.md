@@ -63,6 +63,8 @@ For the complete-file scalability experiments, first place the source file at
 experiment are reproduced with:
 
 ```bash
+twitch-recs extract-million --config configs/half_million.yaml
+twitch-recs run-million --config configs/half_million.yaml
 twitch-recs extract-million --config configs/million.yaml
 twitch-recs run-million --config configs/million.yaml
 ```

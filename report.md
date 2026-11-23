@@ -210,26 +210,40 @@ BPR 的低表現不是單一 bug 所致，而是模型假設、資料結構與�
 
 ### 5.4 增加訓練資料如何影響結果？
 
-專案把獨立約 100k cohort 與一百萬使用者 cohort 做 robustness comparison：
+專案以獨立約 100k、500k 與 1m 三個 cohort 做 scalability／robustness comparison：
 
-| 模型 | 約 100k NDCG@10 | 1m NDCG@10 | 相對變化 |
+| 模型 | 約 100k NDCG@10 | 500k NDCG@10 | 1m NDCG@10 |
 |---|---:|---:|---:|
-| Hybrid | 0.132178 | 0.131703 | −0.36% |
-| ItemKNN | 0.126534 | 0.130398 | +3.05% |
-| BPR | 0.053731 | 0.043017 | −19.94% |
-| Recent Popularity | 0.037562 | 0.035291 | −6.05% |
-| Popularity | 0.037277 | 0.035717 | −4.18% |
+| Hybrid | 0.132178 | 0.128898 | 0.131703 |
+| ItemKNN | 0.126534 | 0.126900 | 0.130398 |
+| BPR | 0.053731 | 0.041878 | 0.043017 |
+| Recent Popularity | 0.037562 | 0.034819 | 0.035291 |
+| Popularity | 0.037277 | 0.034773 | 0.035717 |
 
-一百萬 cohort 有 30,585,070 筆互動與 464,657 個頻道。更多使用者讓 ItemKNN 看見更多 co-viewing pairs，因此相似度估計稍微改善。Hybrid 幾乎持平，因為 ItemKNN 的改善被 BPR 的下降部分抵銷。BPR 並未因資料增加而自然進步，可能原因是頻道庫也從約 161k 增至約 465k，item space 擴張使長尾和負樣本問題更嚴重；同時固定的 factors、uniform negative sampling 與有限 epochs 未必適合更大的矩陣。
+![三種資料規模的模型 NDCG](outputs/assignment2/figures/scalability_ndcg.png)
+
+| Cohort | 使用者 | 互動 | 頻道 | 模型實驗 wall-clock |
+|---|---:|---:|---:|---:|
+| 約 100k | 99,660 | 3,034,146 | 161,021 | 32.95 分鐘 |
+| 500k | 500,000 | 15,271,133 | 355,257 | 33.59 分鐘 |
+| 1m | 1,000,000 | 30,585,070 | 464,657 | 77.08 分鐘 |
+
+![實測執行時間與 cohort 規模](outputs/assignment2/figures/scaling.png)
+
+500k 實驗完整走過資料庫建立、時間切分、三組 ItemKNN、八組 BPR、Hybrid 搜尋、final refit 與 4,870 位 test users 的完整 catalog 排名，並在 33.59 分鐘內完成；另外從 474,676,930 筆完整來源抽取 cohort 花費 5.68 分鐘。三個規模的模型排序都維持 **Hybrid > ItemKNN > BPR > popularity**，而 Hybrid NDCG 位於 0.1289--0.1322，顯示主要結論在規模擴張後仍穩定。這足以作為工程上能完成 500k 與 1m 訓練／評估的最小三點 scalability evidence。
+
+500k 的 wall-clock 接近約 100k，不代表演算法成本沒有隨資料量增加：500k 只對 1,904 位 validation users 與 4,870 位 test users 排名，約 100k 則評估全部 52,794 位 eligible test users；此外各次 runtime 的紀錄方式也不完全相同。因此圖只能證明各規模能在目前資源下完成，不能拿斜率估計時間複雜度。
+
+更多使用者讓 ItemKNN 看見更多 co-viewing pairs，因此 1m 的相似度估計稍微改善。BPR 並未因資料增加而自然進步；500k validation 選出 32 factors，而約 100k 與 1m 選出 64 factors，也顯示最佳模型容量會隨 cohort 改變。可能原因是頻道庫從約 161k 擴張至 355k、再增至 465k，item space 與長尾同時增大，使 uniform negative sampling 和有限 epochs 的問題更明顯。
 
 這不是嚴格的 learning curve，原因包括：
 
-- 100k 與 1m 並非同一批使用者逐步加入資料；
+- 100k、500k 與 1m 並非固定同一批使用者逐步加入資料；
 - 頻道 catalog、cohort 組成與 sparsity 同時改變；
-- 1m 實驗只對固定抽樣的 4,895 位 test users 做完整排序，而主要 100k 實驗評估所有 eligible test users；
+- 500k／1m 分別只對固定抽樣的 4,870／4,895 位 test users 做完整排序，而約 100k 實驗評估所有 52,794 位 eligible test users；
 - catalog coverage 的分母不同，不能直接用百分比比較模型變得更集中或更分散。
 
-因此可支持的結論是：**此系統能擴展到一百萬使用者，而且 Hybrid > ItemKNN > BPR > popularity 的排序仍大致穩定；但沒有證據顯示單純增加資料量會一致提升所有模型。** 若要回答純粹的 training-size effect，應固定同一 test set、候選 catalog、超參數搜尋預算與使用者分布，建立 100k、250k、500k、1m 的 nested training cohorts，並回報信賴區間。
+因此可支持的結論是：**此系統已在 100k、500k 與 1m 三個規模完成實驗，而且 Hybrid > ItemKNN > BPR > popularity 的排序穩定；但沒有證據顯示單純增加資料量會一致提升所有模型。** 若要回答純粹的 training-size effect，仍應固定同一 test set、候選 catalog、超參數搜尋預算與使用者分布，建立 nested training cohorts 並回報信賴區間。
 
 ### 5.5 不同群體的表現
 

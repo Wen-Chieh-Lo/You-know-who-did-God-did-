@@ -36,6 +36,7 @@ outputs/assignment2/tables/*
 !outputs/assignment2/tables/rolling_backtest.csv
 !outputs/assignment2/tables/rolling_backtest_coverage.csv
 !outputs/assignment2/tables/scaling.csv
+!outputs/assignment2/tables/scalability_ndcg.csv
 !outputs/assignment2/tables/validation_sample_selections.csv
 !outputs/assignment2/tables/validation_sample_stability.csv
 !outputs/advanced/

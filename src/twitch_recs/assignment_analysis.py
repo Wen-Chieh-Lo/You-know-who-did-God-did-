@@ -481,6 +481,12 @@ def run_validation_sample_stability(frame: pd.DataFrame, config: dict,
 def _log_runtime_minutes(path: Path) -> float | None:
     if not path.exists():
         return None
+    for line in reversed(path.read_text(errors="replace").splitlines()):
+        if line.startswith("real "):
+            try:
+                return float(line.split()[1]) / 60
+            except (IndexError, ValueError):
+                break
     try:
         values = subprocess.check_output(
             ["stat", "-c", "%W %Y", str(path)], text=True
@@ -497,6 +503,8 @@ def scaling_table(root: Path, assignment_output: Path) -> pd.DataFrame:
          root / "outputs/logs/full_run.log"),
         ("independent_100k", root / "outputs_full/dataset_summary.json",
          root / "outputs_full/logs/full_cohort_run.log"),
+        ("half_million", root / "outputs_500k/dataset_summary.json",
+         root / "outputs_500k/run.log"),
         ("one_million", root / "outputs_million/dataset_summary.json",
          root / "outputs_million/run.log"),
     ]
@@ -509,7 +517,12 @@ def scaling_table(root: Path, assignment_output: Path) -> pd.DataFrame:
             "interactions": int(summary["interactions"]),
             "channels": int(summary["channels"]),
             "wall_clock_minutes": _log_runtime_minutes(log_path),
-            "runtime_source": "filesystem birth-to-final-write interval of run log",
+            "runtime_source": (
+                "GNU time real seconds recorded in run log"
+                if any(line.startswith("real ") for line in
+                       log_path.read_text(errors="replace").splitlines())
+                else "filesystem birth-to-final-write interval of run log"
+            ),
         })
     result = pd.DataFrame(rows)
     result.to_csv(assignment_output / "tables" / "scaling.csv", index=False)
@@ -592,14 +605,55 @@ def create_assignment_figures(primary_output: Path, assignment_output: Path,
     plt.figure(figsize=(7.2, 4.5))
     plt.plot(scaling["users"], scaling["wall_clock_minutes"], marker="o")
     for row in scaling.itertuples():
+        rightmost = row.users == scaling["users"].max()
         plt.annotate(row.experiment, (row.users, row.wall_clock_minutes),
-                     xytext=(5, 5), textcoords="offset points")
+                     xytext=(-5 if rightmost else 5, 5), textcoords="offset points",
+                     ha="right" if rightmost else "left")
     plt.xscale("log")
     plt.xlabel("Training-cohort users (log scale)")
     plt.ylabel("End-to-end wall-clock minutes")
     plt.title("Observed experiment scaling")
     plt.grid(alpha=0.25)
     _save_figure(figure_dir / "scaling.png")
+
+    root = assignment_output.parent.parent
+    scale_runs = [
+        ("100k", 99_660, root / "outputs_full/tables/test_results.csv"),
+        ("500k", 500_000, root / "outputs_500k/tables/test_results.csv"),
+        ("1m", 1_000_000, root / "outputs_million/tables/test_results.csv"),
+    ]
+    model_names = {
+        "hybrid_a0.75": "Hybrid",
+        "item_knn": "ItemKNN",
+        "bpr": "BPR",
+        "recent_popularity": "Recent popularity",
+        "popularity": "Popularity",
+    }
+    accuracy_rows = []
+    for scale_label, users, result_path in scale_runs:
+        frame = pd.read_csv(result_path)
+        for model, display_name in model_names.items():
+            value = frame.loc[frame["model"] == model, "ndcg_at_10"]
+            accuracy_rows.append({
+                "scale": scale_label,
+                "users": users,
+                "model": display_name,
+                "ndcg_at_10": float(value.iloc[0]),
+            })
+    accuracy = pd.DataFrame(accuracy_rows)
+    accuracy.to_csv(assignment_output / "tables" / "scalability_ndcg.csv", index=False)
+    plt.figure(figsize=(7.6, 4.8))
+    for model, group in accuracy.groupby("model", sort=False):
+        group = group.sort_values("users")
+        plt.plot(group["users"], group["ndcg_at_10"], marker="o", label=model)
+    plt.xscale("log")
+    plt.xticks([100_000, 500_000, 1_000_000], ["100k", "500k", "1m"])
+    plt.xlabel("Training-cohort users (log scale)")
+    plt.ylabel("Test NDCG@10")
+    plt.title("Model ranking remains stable across three cohort scales")
+    plt.legend(bbox_to_anchor=(1.02, 1), loc="upper left")
+    plt.grid(alpha=0.25)
+    _save_figure(figure_dir / "scalability_ndcg.png")
 
     period_path = assignment_output / "tables" / "period_level_results.csv"
     if period_path.exists():

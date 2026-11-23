@@ -184,12 +184,16 @@ catalog.
 |---|---:|---:|---:|---:|
 | Official 100k | 100,000 | 3,051,733 | 162,625 | 28.23 |
 | Independent approximately-100k | 99,660 | 3,034,146 | 161,021 | 32.95 |
+| Half million | 500,000 | 15,271,133 | 355,257 | 33.59 |
 | One million | 1,000,000 | 30,585,070 | 464,657 | 77.08 |
 
-Times are filesystem birth-to-final-write intervals for the saved run logs, not a
-controlled hardware benchmark. The one-million run uses capped validation/test ranking
-samples, whereas the 100k runs evaluate all eligible test users, so runtime ratios must
-not be interpreted as an algorithmic scaling exponent.
+The 500k time is GNU `time` wall-clock output; the existing runs use filesystem
+birth-to-final-write intervals for their saved run logs. These are observed completion
+times, not a controlled hardware benchmark. The 500k and one-million runs use capped
+validation/test ranking samples, whereas the 100k runs evaluate all eligible test
+users, so runtime ratios must not be interpreted as an algorithmic scaling exponent.
+The three completed scale points demonstrate that the disk-backed pipeline executes at
+500k and 1m users; they do not estimate a causal learning curve.
 
 ## Reproducibility and artifacts
 
