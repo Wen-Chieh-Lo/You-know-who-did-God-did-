@@ -14,7 +14,7 @@ This project studies new-channel recommendation on Twitch. Rather than predictin
 
 Timing: 0:30–1:25 (55 sec)
 
-Twitch presents a difficult discovery setting. The subset already contains more than one hundred sixty-two thousand channels, yet the average viewer has only about thirty interactions. The popularity distribution is strongly long-tailed, so most channels provide little training signal. Live availability also changes over time, which means a missing interaction may indicate that the channel was offline rather than disliked. These properties motivate a dedicated new-channel discovery objective rather than optimizing repeat engagement alone.
+Twitch presents a difficult discovery setting. The subset already contains more than one hundred sixty-two thousand channels, yet the average viewer has only about thirty interactions. Almost forty-five percent of channels appear only once, sixty percent have at most two interactions, and seventy-seven percent have at most five. At the other extreme, the top one percent of channels receive sixty percent of all interactions. The chart now reports interpretable cumulative shares rather than an unlabeled rank curve. This concentration leaves weak item evidence, while live availability makes missing views ambiguous. The motivation is to learn useful discovery rankings despite these limits.
 
 ## 3. Objective
 

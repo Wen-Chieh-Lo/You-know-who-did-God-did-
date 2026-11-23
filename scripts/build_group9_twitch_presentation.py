@@ -139,9 +139,14 @@ def add_seal(slide, seal: bytes) -> None:
 
 def add_header(slide, title_value: str, takeaway: str, number: int,
                seal: bytes) -> None:
-    text(slide, title_value, 0.68, 0.28, 8.10, 0.45,
-         size=24, color=NAVY, bold=True)
-    rect(slide, 0.69, 0.96, 8.90, 0.045, TEAL)
+    # Keep every research title on one line and on the same baseline. Long,
+    # result-oriented titles use a smaller size instead of wrapping into the rule.
+    title_size = (22 if len(title_value) <= 36 else
+                  20 if len(title_value) <= 48 else
+                  17.5 if len(title_value) <= 62 else 16)
+    text(slide, title_value, 0.68, 0.24, 8.16, 0.46,
+         size=title_size, color=NAVY, bold=True, valign=MSO_ANCHOR.MIDDLE)
+    rect(slide, 0.69, 0.88, 8.90, 0.045, TEAL)
     add_seal(slide, seal)
     add_footer(slide, number)
 
@@ -328,62 +333,82 @@ def build() -> None:
 
     # 2 — Motivation
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "Motivation", "", 2, seal)
-    picture_fit(slide, ROOT / "outputs/figures/channel_long_tail.png",
-                0.42, 1.20, 5.55, 3.85)
-    draw_catalog_icon(slide, 6.40, 1.43)
-    text(slide, "162,625", 7.35, 1.35, 1.55, 0.32,
-         size=20, color=NAVY, bold=True)
-    text(slide, "channels", 7.35, 1.70, 1.55, 0.24, size=11.5, color=GRAY)
-    draw_sparse_icon(slide, 6.38, 2.45)
-    text(slide, "30.5", 7.35, 2.40, 1.55, 0.32,
-         size=20, color=NAVY, bold=True)
-    text(slide, "interactions / viewer", 7.35, 2.75, 1.85, 0.24,
-         size=11.5, color=GRAY)
-    draw_clock_icon(slide, 6.40, 3.48)
-    text(slide, "Dynamic", 7.35, 3.43, 1.65, 0.32,
-         size=18, color=NAVY, bold=True)
-    text(slide, "live availability", 7.35, 3.78, 1.75, 0.24,
-         size=11.5, color=GRAY)
-    rect(slide, 6.28, 4.45, 3.00, 0.035, TEAL)
-    text(slide, "Discovery is difficult when most channels have little data and may be offline.",
-         6.30, 4.62, 2.95, 0.50, size=12.5, color=NAVY,
-         align=PP_ALIGN.CENTER)
-    text(slide, "Source: UCSD Twitch dataset; Rappaz et al., RecSys 2021.",
-         0.56, 5.05, 4.80, 0.18, size=8.5, color=MID)
+    add_header(slide, "Motivation: 77% of Channels Have ≤5 Interactions", "", 2, seal)
+    text(slide, "Cumulative share of 162,625 channels", 0.72, 1.18, 4.75, 0.26,
+         size=13, color=GRAY, bold=True)
+    thresholds = [("≤ 1", 0.446, "45%"), ("≤ 2", 0.601, "60%"),
+                  ("≤ 5", 0.769, "77%"), ("≤ 10", 0.861, "86%")]
+    for index, (label, share, display) in enumerate(thresholds):
+        y = 1.62 + index * 0.66
+        text(slide, label, 0.72, y + 0.03, 0.55, 0.24,
+             size=12.5, color=NAVY, bold=True, align=PP_ALIGN.RIGHT)
+        rect(slide, 1.42, y, 3.92, 0.34, LIGHT)
+        rect(slide, 1.42, y, 3.92 * share, 0.34,
+             TEAL if label == "≤ 5" else BLUE)
+        text(slide, display, 5.48, y + 0.02, 0.55, 0.25,
+             size=13, color=TEAL if label == "≤ 5" else NAVY, bold=True)
+    rect(slide, 0.72, 4.35, 5.30, 0.52, LIGHT, line=GRID)
+    text(slide, "Top 1% of channels", 0.92, 4.49, 1.65, 0.22,
+         size=12.5, color=NAVY, bold=True)
+    text(slide, "receive 60% of all interactions", 2.60, 4.49, 3.10, 0.22,
+         size=12.5, color=TEAL, bold=True)
+
+    rect(slide, 6.28, 1.20, 0.035, 3.66, GRID)
+    draw_sparse_icon(slide, 6.66, 1.42)
+    text(slide, "Sparse evidence", 7.58, 1.36, 1.72, 0.26,
+         size=11.5, color=NAVY, bold=True)
+    text(slide, "unstable tail representations", 7.58, 1.68, 1.72, 0.38,
+         size=11, color=GRAY)
+    draw_clock_icon(slide, 6.69, 2.46)
+    text(slide, "Ambiguous negatives", 7.58, 2.40, 1.72, 0.26,
+         size=11.5, color=NAVY, bold=True)
+    text(slide, "no view does not imply dislike", 7.58, 2.72, 1.72, 0.38,
+         size=11, color=GRAY)
+    draw_catalog_icon(slide, 6.69, 3.54)
+    text(slide, "Concentrated demand", 7.58, 3.46, 1.72, 0.26,
+         size=11.5, color=NAVY, bold=True)
+    text(slide, "discovery favors established channels", 7.58, 3.78, 1.72, 0.46,
+         size=11, color=GRAY)
+    text(slide, "Motivation", 6.67, 4.53, 0.88, 0.22,
+         size=10.5, color=TEAL, bold=True)
+    text(slide, "Rank channels with little history.",
+         7.52, 4.49, 1.83, 0.40, size=11.5, color=NAVY, bold=True)
+    text(slide, "Source: UCSD Twitch dataset; channel-level interaction counts.",
+         0.72, 5.05, 5.40, 0.18, size=8.5, color=MID)
     add_notes(slide, "Motivation", "0:30–1:25 (55 sec)",
               "Twitch presents a difficult discovery setting. The subset already contains more than one "
               "hundred sixty-two thousand channels, yet the average viewer has only about thirty interactions. "
-              "The popularity distribution is strongly long-tailed, so most channels provide little training "
-              "signal. Live availability also changes over time, which means a missing interaction may indicate "
-              "that the channel was offline rather than disliked. These properties motivate a dedicated new-channel "
-              "discovery objective rather than optimizing repeat engagement alone.")
+              "Almost forty-five percent of channels appear only once, sixty percent have at most two interactions, "
+              "and seventy-seven percent have at most five. At the other extreme, the top one percent of channels "
+              "receive sixty percent of all interactions. The chart now reports interpretable cumulative shares rather "
+              "than an unlabeled rank curve. This concentration leaves weak item evidence, while live availability "
+              "makes missing views ambiguous. The motivation is to learn useful discovery rankings despite these limits.")
 
     # 3 — Objective
     slide = prs.slides.add_slide(blank)
     add_header(slide, "Objective", "", 3, seal)
     text(slide, "Recommend ten fit-catalog channels the viewer has never watched.",
-         1.15, 1.20, 7.70, 0.42, size=21, color=NAVY, bold=True,
+         1.15, 1.14, 7.70, 0.42, size=20, color=NAVY, bold=True,
          align=PP_ALIGN.CENTER)
     flow = [
-        (0.72, draw_history_icon, "Past binary\nhistory"),
-        (3.02, draw_ranking_icon, "Full-catalog\nranking"),
-        (5.50, draw_topk_icon, "Top-10 unseen\nchannels"),
-        (7.92, draw_future_view_icon, "Future first-time\nviews"),
+        (0.63, draw_history_icon, "Past binary\nhistory"),
+        (2.98, draw_ranking_icon, "Full-catalog\nranking"),
+        (5.33, draw_topk_icon, "Top-10 unseen\nchannels"),
+        (7.68, draw_future_view_icon, "Future first-time\nviews"),
     ]
     for i, (x, drawer, label) in enumerate(flow):
-        drawer(slide, x + 0.35, 2.15)
-        text(slide, label, x, 3.18, 1.95, 0.58, size=13, color=NAVY,
+        drawer(slide, x + 0.34, 2.05)
+        text(slide, label, x, 3.08, 1.80, 0.58, size=12.5, color=NAVY,
              bold=True, align=PP_ALIGN.CENTER)
         if i < len(flow) - 1:
-            add_process_arrow(slide, x + 1.98, 2.45)
-    rect(slide, 1.08, 4.20, 7.84, 0.035, GRID)
-    text(slide, "Input", 1.35, 4.47, 0.55, 0.22, size=11.5, color=TEAL, bold=True)
-    text(slide, "implicit feedback only", 1.88, 4.47, 1.60, 0.22, size=11.5, color=GRAY)
-    text(slide, "Output", 3.85, 4.47, 0.65, 0.22, size=11.5, color=TEAL, bold=True)
-    text(slide, "personalized ranking", 4.50, 4.47, 1.55, 0.22, size=11.5, color=GRAY)
-    text(slide, "Evaluation", 6.35, 4.47, 0.85, 0.22, size=11.5, color=TEAL, bold=True)
-    text(slide, "chronological holdout", 7.18, 4.47, 1.65, 0.22, size=11.5, color=GRAY)
+            add_process_arrow(slide, x + 1.87, 2.34)
+    rect(slide, 0.82, 4.16, 8.36, 0.035, GRID)
+    text(slide, "INPUT", 1.02, 4.47, 0.58, 0.22, size=10.5, color=TEAL, bold=True)
+    text(slide, "implicit feedback", 1.64, 4.47, 1.35, 0.22, size=11.5, color=GRAY)
+    text(slide, "OUTPUT", 3.78, 4.47, 0.68, 0.22, size=10.5, color=TEAL, bold=True)
+    text(slide, "personalized Top-10", 4.49, 4.47, 1.55, 0.22, size=11.5, color=GRAY)
+    text(slide, "TEST", 6.72, 4.47, 0.48, 0.22, size=10.5, color=TEAL, bold=True)
+    text(slide, "chronological holdout", 7.22, 4.47, 1.65, 0.22, size=11.5, color=GRAY)
     add_notes(slide, "Objective", "1:25–2:10 (45 sec)",
               "The objective is to recommend ten channels from the fit catalog that the viewer has never "
               "watched. The input is past binary viewing history. The model ranks the full known catalog after "
@@ -393,7 +418,7 @@ def build() -> None:
 
     # 4 — Dataset and EDA
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "Dataset: 100K Users, 162,625 Channels, 3.05M Interactions",
+    add_header(slide, "Dataset: 100K Users and 3.05M Interactions",
                "The interaction matrix is highly sparse, long-tailed, and dominated by implicit signals.",
                4, seal)
     picture_fit(slide, ROOT / "outputs/figures/new_vs_return.png",
@@ -425,28 +450,28 @@ def build() -> None:
     add_header(slide, "Task Definition and Temporal Split",
                "Model selection is chronological; the test set is used exactly once.", 5, seal)
     stages = [
-        (0.60, "History", "Binary views\ndays 0–29"),
-        (2.55, "Validation", "Select settings\ndays 30–35"),
-        (4.55, "Refit", "Train + validation\nthrough day 35"),
-        (6.62, "Rank", "Full fit catalog\nexclude seen items"),
-        (8.43, "Test", "Novel positives\ndays 36–42"),
+        (0.58, "History", "Binary views\ndays 0–29"),
+        (2.46, "Validation", "Select settings\ndays 30–35"),
+        (4.34, "Refit", "Train + validation\nthrough day 35"),
+        (6.22, "Rank", "Full fit catalog\nexclude seen items"),
+        (8.10, "Test", "Novel positives\ndays 36–42"),
     ]
     for i, (x, heading, body) in enumerate(stages):
-        rect(slide, x, 1.80, 1.28, 0.48, NAVY)
-        text(slide, heading, x, 1.91, 1.28, 0.25, size=13, color=WHITE,
+        rect(slide, x, 1.62, 1.32, 0.46, NAVY)
+        text(slide, heading, x, 1.72, 1.32, 0.24, size=12.5, color=WHITE,
              bold=True, align=PP_ALIGN.CENTER)
-        text(slide, body, x - 0.06, 2.50, 1.40, 0.65, size=12.5, color=GRAY,
+        text(slide, body, x - 0.08, 2.28, 1.48, 0.62, size=11.5, color=GRAY,
              align=PP_ALIGN.CENTER)
         if i < len(stages) - 1:
-            add_process_arrow(slide, x + 1.42, 1.91)
-    rect(slide, 0.72, 3.55, 8.62, 0.035, GRID)
-    text(slide, "Validity checks", 0.72, 3.82, 1.65, 0.28,
+            add_process_arrow(slide, x + 1.45, 1.70)
+    rect(slide, 0.72, 3.28, 8.62, 0.035, GRID)
+    text(slide, "Validity checks", 0.72, 3.62, 1.45, 0.28,
          size=14.5, color=NAVY, bold=True)
     bullets(slide, [
         "Mappings, popularity statistics, similarities, and embeddings use fit-period data only",
         "53,212 eligible users and 104,818 user-day cases in the primary held-out test",
         "10,000 user-clustered paired bootstrap draws with Holm correction",
-    ], 2.35, 3.75, 6.95, 1.05, size=13, space_after=3)
+    ], 2.20, 3.51, 7.10, 1.18, size=12.5, space_after=4)
     add_notes(slide, "Prediction Task and Evaluation Protocol", "3:25–4:45 (80 sec)",
               "The first thirty days fit candidate models, the next six select hyperparameters, "
               "and the final seven form the held-out test. After selection, the models are refit "
@@ -491,8 +516,8 @@ def build() -> None:
                "Sparse computation avoids materializing the 162K × 162K item-similarity matrix.",
                7, seal)
     picture_fit(slide, ROOT / "outputs/assignment2/figures/hybrid_ablation.png",
-                0.42, 1.42, 5.90, 3.67)
-    text(slide, "Selected configuration", 6.50, 1.62, 2.60, 0.30,
+                0.50, 1.24, 5.55, 3.70)
+    text(slide, "Selected configuration", 6.45, 1.35, 2.70, 0.30,
          size=15.5, color=NAVY, bold=True)
     add_flat_table(slide, [
         ["Component", "Selected setting"],
@@ -500,13 +525,12 @@ def build() -> None:
         ["BPR", "64 factors; lr 0.03"],
         ["BPR", "reg 0.0025; 20 epochs"],
         ["Hybrid", "α = 0.75; λ = 0"],
-    ], 6.25, 2.05, [1.25, 2.40], row_h=0.46, font_size=11.5)
-    text(slide, "Engineering", 6.50, 4.46, 1.2, 0.26,
-         size=13.5, color=TEAL, bold=True)
-    text(slide,
-         "Sparse block multiplication; retain only top-200 neighbors per item; "
-         "YAML-recorded search space and seed 258.",
-         7.62, 4.42, 1.77, 0.65, size=11.5, color=GRAY)
+    ], 6.38, 1.82, [1.12, 2.12], row_h=0.46, font_size=10.8)
+    rect(slide, 6.38, 4.35, 3.24, 0.58, LIGHT, line=GRID)
+    text(slide, "ENGINEERING", 6.56, 4.52, 0.92, 0.18,
+         size=9.5, color=TEAL, bold=True)
+    text(slide, "Sparse blocks · top-200 neighbors · seed 258",
+         7.47, 4.48, 1.96, 0.26, size=10.5, color=NAVY, bold=True)
     add_notes(slide, "Implementation and Hyperparameter Selection", "6:15–7:30 (75 sec)",
               "ItemKNN is computed with sparse block multiplication and only the top two hundred "
               "neighbors per channel are retained, so the dense item-item matrix is never created. "
@@ -520,19 +544,28 @@ def build() -> None:
     add_header(slide, "Evaluation Metrics and Statistical Inference",
                "Ranking accuracy and recommendation breadth answer different scientific questions.",
                8, seal)
-    add_metric_line(slide, 0.80, 1.70, "Recall@10", "fraction of novel positives retrieved", TEAL)
-    add_metric_line(slide, 3.00, 1.70, "NDCG@10", "rank-discounted accuracy (primary)", BLUE)
-    add_metric_line(slide, 5.28, 1.70, "Hit Rate", "cases with at least one hit", GREEN)
-    add_metric_line(slide, 7.45, 1.70, "Coverage", "fit catalog exposed at least once", ORANGE)
-    rect(slide, 0.72, 2.86, 8.62, 0.035, GRID)
+    metric_cards = [
+        (0.62, "Recall@10", "How many future discoveries are retrieved?", TEAL),
+        (2.84, "NDCG@10", "Are correct channels ranked near the top?", BLUE),
+        (5.06, "Hit Rate", "Does a case contain at least one hit?", GREEN),
+        (7.28, "Coverage", "How much of the catalog is exposed?", ORANGE),
+    ]
+    for x, label, definition, color in metric_cards:
+        rect(slide, x, 1.34, 2.05, 1.18, WHITE, line=GRID)
+        rect(slide, x, 1.34, 2.05, 0.055, color)
+        text(slide, label, x + 0.10, 1.58, 1.85, 0.28,
+             size=16, color=color, bold=True, align=PP_ALIGN.CENTER)
+        text(slide, definition, x + 0.14, 1.96, 1.77, 0.40,
+             size=10.5, color=GRAY, align=PP_ALIGN.CENTER)
+    rect(slide, 0.72, 2.82, 8.62, 0.035, GRID)
     add_flat_table(slide, [
         ["Metric", "Interpretation", "Why it matters"],
         ["Novelty", "Self-information of recommended channels", "Penalizes only-head recommendations"],
         ["Long-tail exposure", "Fraction of recommendations in the tail", "Measures creator-side breadth"],
         ["Candidate coverage", "Novel positives present in fit catalog", "Separates ranking from item cold-start"],
-    ], 0.92, 3.28, [2.05, 3.20, 3.10], row_h=0.48, font_size=11.5)
+    ], 0.82, 3.18, [1.85, 3.15, 3.35], row_h=0.45, font_size=10.8)
     text(slide, "Model selection uses validation NDCG@10; all other metrics are diagnostic.",
-         1.18, 4.95, 7.65, 0.26, size=12.5, color=TEAL, bold=True,
+         1.18, 4.90, 7.65, 0.26, size=12, color=TEAL, bold=True,
          align=PP_ALIGN.CENTER)
     add_notes(slide, "Evaluation Metrics", "7:30–8:45 (75 sec)",
               "Recall measures how many future discoveries are recovered. NDCG additionally rewards "
@@ -548,7 +581,7 @@ def build() -> None:
                "Hybrid improves ranking accuracy, while ItemKNN retains broader catalog exposure.",
                9, seal)
     picture_fit(slide, ROOT / "outputs/figures/test_accuracy.png",
-                0.30, 1.34, 6.05, 3.84)
+                0.45, 1.24, 5.65, 3.76)
     add_flat_table(slide, [
         ["Model", "NDCG@10", "Recall@10", "Coverage"],
         ["Hybrid", "0.13148", "0.22342", "26.36%"],
@@ -556,11 +589,11 @@ def build() -> None:
         ["Count ItemKNN", "0.11694", "0.19862", "40.50%"],
         ["BPR", "0.05420", "0.09328", "0.62%"],
         ["Recent popularity", "0.03779", "0.06195", "0.02%"],
-    ], 6.28, 1.53, [1.30, 0.78, 0.78, 0.78], row_h=0.46, font_size=9.7)
-    text(slide, "+4.48% NDCG vs. ItemKNN", 6.53, 4.50, 2.70, 0.28,
+    ], 6.18, 1.40, [1.32, 0.78, 0.78, 0.78], row_h=0.46, font_size=9.7)
+    text(slide, "+4.48% NDCG vs. ItemKNN", 6.42, 4.42, 2.78, 0.28,
          size=15, color=TEAL, bold=True, align=PP_ALIGN.CENTER)
     text(slide, "but 10.35 percentage points less catalog coverage",
-         6.38, 4.82, 3.05, 0.25, size=11.5, color=GRAY,
+         6.30, 4.76, 3.08, 0.25, size=10.8, color=GRAY,
          align=PP_ALIGN.CENTER)
     add_notes(slide, "Main Test Results", "8:45–10:30 (105 sec)",
               "Hybrid is the most accurate model with NDCG point one three one five and recall point "
@@ -573,29 +606,36 @@ def build() -> None:
 
     # 10 — BPR and hybrid
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "BPR Underperforms ItemKNN by 56.9% in NDCG@10",
+    add_header(slide, "BPR Trails ItemKNN by 56.9% in NDCG@10",
                "The latent model is mismatched to the data, yet it retrieves positives missed by ItemKNN.",
                10, seal)
-    text(slide, "Observed mismatch", 0.72, 1.55, 2.25, 0.28,
+    text(slide, "Why BPR is mismatched", 0.72, 1.38, 2.45, 0.28,
          size=15, color=NAVY, bold=True)
-    bullets(slide, [
-        "Tail channels have insufficient data for stable item factors",
-        "Non-interaction conflates dislike with channel unavailability",
-        "One uniform negative per positive is usually too easy",
-        "Pairwise training is not identical to unseen-channel Top-10 ranking",
-    ], 0.72, 1.95, 4.18, 2.32, size=13.3, space_after=5)
-    rect(slide, 5.10, 1.48, 0.035, 3.25, GRID)
-    text(slide, "Complementarity", 5.48, 1.55, 1.90, 0.28,
+    mismatch = [
+        ("Sparse tail", "item factors receive little evidence"),
+        ("Noisy negatives", "offline may be mistaken for dislike"),
+        ("Easy sampling", "uniform negatives rarely challenge ranking"),
+        ("Objective gap", "pairwise loss differs from full-catalog Top-10"),
+    ]
+    for index, (heading, explanation) in enumerate(mismatch):
+        y = 1.82 + index * 0.69
+        oval(slide, 0.76, y + 0.06, 0.13, 0.13, TEAL)
+        text(slide, heading, 1.02, y, 1.38, 0.25,
+             size=12, color=NAVY, bold=True)
+        text(slide, explanation, 2.34, y, 2.37, 0.34,
+             size=11, color=GRAY)
+    rect(slide, 5.02, 1.32, 0.035, 3.56, GRID)
+    text(slide, "Complementary hits", 5.42, 1.38, 2.05, 0.28,
          size=15, color=NAVY, bold=True)
-    add_metric_line(slide, 5.42, 2.02, "22,559", "ItemKNN-only hits", BLUE)
-    add_metric_line(slide, 7.10, 2.02, "5,540", "BPR-only hits", ORANGE)
-    add_metric_line(slide, 5.42, 3.12, "7,648", "hits by both", GREEN)
-    text(slide, "Hybrid − ItemKNN NDCG", 7.02, 3.20, 2.0, 0.24,
+    add_metric_line(slide, 5.30, 1.88, "22,559", "ItemKNN only", BLUE)
+    add_metric_line(slide, 7.42, 1.88, "5,540", "BPR only", ORANGE)
+    add_metric_line(slide, 5.30, 3.14, "7,648", "both models", GREEN)
+    text(slide, "Hybrid − ItemKNN", 7.20, 3.23, 2.0, 0.24,
          size=12, color=GRAY, align=PP_ALIGN.CENTER)
-    text(slide, "+0.005638", 7.02, 3.50, 2.0, 0.33,
+    text(slide, "+0.005638", 7.20, 3.55, 2.0, 0.33,
          size=21, color=TEAL, bold=True, align=PP_ALIGN.CENTER)
     text(slide, "95% CI [0.005201, 0.006088] · Holm p = 0.0024",
-         5.50, 4.46, 3.60, 0.24, size=10.5, color=MID,
+         5.42, 4.57, 3.78, 0.24, size=10.5, color=MID,
          align=PP_ALIGN.CENTER)
     add_notes(slide, "Why BPR Underperforms—and Still Helps", "10:30–12:10 (100 sec)",
               "BPR is disadvantaged by the long tail because many item factors receive little data. "
@@ -608,22 +648,23 @@ def build() -> None:
 
     # 11 — Ablations and subgroups
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "Binary Feedback Improves NDCG; Long-Tail Recall Falls to 0.0328",
+    add_header(slide, "Binary Feedback Helps; Tail Recall Is Only 0.0328",
                "Discovery is hardest for long-history users and long-tail target channels.", 11, seal)
     picture_fit(slide, ROOT / "outputs/assignment2/figures/feature_representation.png",
-                0.45, 1.40, 4.30, 2.55)
+                0.48, 1.24, 4.18, 2.72)
     picture_fit(slide, ROOT / "outputs/assignment2/figures/channel_popularity_subgroups.png",
-                4.95, 1.40, 4.55, 2.55)
-    rect(slide, 0.68, 4.25, 8.70, 0.035, GRID)
-    text(slide, "Binary vs. count", 0.72, 4.48, 1.55, 0.25,
-         size=13, color=NAVY, bold=True)
-    text(slide, "NDCG 0.12584 vs. 0.11694", 2.05, 4.48, 2.35, 0.25,
-         size=12.5, color=TEAL, bold=True)
-    text(slide, "Viewer history", 4.60, 4.48, 1.35, 0.25,
-         size=13, color=NAVY, bold=True)
-    text(slide, "1–6 channels: 0.16794 NDCG · 25+: 0.09012",
-         5.90, 4.48, 3.45, 0.25, size=11.5, color=TEAL, bold=True,
-         align=PP_ALIGN.RIGHT)
+                5.02, 1.24, 4.50, 2.72)
+    rect(slide, 0.68, 4.18, 8.70, 0.035, GRID)
+    findings = [
+        (0.72, "Binary > count", "0.12584 vs. 0.11694 NDCG"),
+        (3.70, "Tail target recall", "0.0328 in least-popular quartile"),
+        (6.68, "Long histories", "NDCG falls to 0.0901 at 25+ channels"),
+    ]
+    for x, heading, body in findings:
+        text(slide, heading, x, 4.44, 2.40, 0.24,
+             size=12, color=NAVY, bold=True, align=PP_ALIGN.CENTER)
+        text(slide, body, x, 4.74, 2.40, 0.28,
+             size=10.5, color=TEAL, bold=True, align=PP_ALIGN.CENTER)
     add_notes(slide, "Feature Ablation and Subgroup Behavior", "12:10–13:40 (90 sec)",
               "Binary ItemKNN outperforms count weighting for new-channel discovery, indicating that "
               "the set of distinct channels matters more than repeatedly amplifying familiar channels. "
@@ -634,7 +675,7 @@ def build() -> None:
 
     # 12 — Temporal robustness
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "Model Ordering Is Stable Across Three Temporal Windows",
+    add_header(slide, "Model Ordering Is Stable Across Time",
                "", 12, seal)
     picture_fit(slide, ROOT / "outputs/assignment2/figures/rolling_backtest.png",
                 0.45, 1.20, 5.65, 3.95)
@@ -660,7 +701,7 @@ def build() -> None:
 
     # 13 — Scalability
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "Hybrid NDCG Remains 0.1289–0.1317 from 100K to 1M Users",
+    add_header(slide, "Hybrid NDCG Is Stable from 100K to 1M Users",
                "", 13, seal)
     picture_fit(slide, ROOT / "outputs/assignment2/figures/scalability_ndcg.png",
                 0.45, 1.20, 5.70, 3.95)
@@ -689,7 +730,7 @@ def build() -> None:
 
     # 14 — Related work
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "Relation to LiveRec and Prior Collaborative Filtering",
+    add_header(slide, "Relation to LiveRec and Prior Work",
                "", 14, seal)
     add_flat_table(slide, [
         ["Aspect", "LiveRec (Rappaz et al., 2021)", "This study"],
