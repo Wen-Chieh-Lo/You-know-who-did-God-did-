@@ -22,11 +22,11 @@ Timing: 1:25–2:10 (45 sec)
 
 The objective is to recommend ten channels from the fit catalog that the viewer has never watched. The input is past binary viewing history. The model ranks the full known catalog after excluding seen channels, returns a Top-10 unseen list, and is evaluated against future first-time views. The system uses implicit feedback only, produces a personalized ranking, and is tested in a chronological holdout.
 
-## 4. Full Dataset and Cohort Construction
+## 4. Dataset Overview
 
 Timing: 2:10–3:25 (75 sec)
 
-The complete Twitch source contains over fifteen point five million users, nearly four hundred seventy-five million interaction rows, and about seven hundred ninety thousand raw channel names across forty-three relative days. We stream and validate the complete file rather than reading a prefix. Scalability cohorts are then formed by deterministic systematic user sampling with seed two fifty-eight, while preserving every interaction for each selected user. This produces matched cohorts from one hundred thousand to one million users. The primary accuracy benchmark is the official one-hundred-thousand-user subset, so it is distinct from the full-source one-hundred-thousand-user scalability cohort. The next slide applies the same chronological protocol.
+The complete Twitch source contains over fifteen point five million users, nearly four hundred seventy-five million viewing interactions, and about seven hundred ninety thousand channel names across forty-three relative days. The primary experiment uses the official one-hundred-thousand-user benchmark, which contains just over three million interactions and more than one hundred sixty-two thousand channels over the same observation window. The data records viewing sessions rather than ratings. Its five fields are an anonymous user, stream identifier, channel name, start slot, and stop slot. Therefore the recommendation task relies on implicit feedback and has no content metadata. The later scalability slide separately introduces the cohorts used for scale testing.
 
 ## 5. Prediction Task and Evaluation Protocol
 
