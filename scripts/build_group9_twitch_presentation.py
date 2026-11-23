@@ -238,6 +238,22 @@ def add_metric_line(slide, x: float, y: float, value: str, label: str,
     rect(slide, x + 0.14, y + 0.83, 1.17, 0.025, color)
 
 
+def add_experiment_question(slide, question: str) -> None:
+    rect(slide, 0.72, 1.06, 8.62, 0.38, LIGHT, line=GRID)
+    text(slide, "QUESTION", 0.88, 1.17, 0.78, 0.16,
+         size=9.5, color=TEAL, bold=True)
+    text(slide, question, 1.70, 1.13, 7.42, 0.22,
+         size=11.5, color=NAVY, bold=True)
+
+
+def add_experiment_finding(slide, finding: str) -> None:
+    rect(slide, 0.72, 4.72, 8.62, 0.40, LIGHT, line=GRID)
+    text(slide, "FINDING", 0.88, 4.84, 0.72, 0.16,
+         size=9.5, color=TEAL, bold=True)
+    text(slide, finding, 1.66, 4.80, 7.45, 0.22,
+         size=11, color=NAVY, bold=True)
+
+
 def add_process_arrow(slide, x: float, y: float) -> None:
     shape = slide.shapes.add_shape(
         MSO_AUTO_SHAPE_TYPE.RIGHT_ARROW, Inches(x), Inches(y), Inches(0.40), Inches(0.28)
@@ -352,7 +368,7 @@ def build() -> None:
 
     # 2 — Motivation
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "Motivation: 77% of Channels Have ≤5 Interactions", "", 2, seal)
+    add_header(slide, "Motivation", "", 2, seal)
     picture_fit(slide, MOTIVATION_FIGURE, 0.48, 1.18, 5.70, 3.78)
 
     conclusion_cards = [
@@ -382,7 +398,7 @@ def build() -> None:
 
     # 3 — Objective
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "Objective", "", 3, seal)
+    add_header(slide, "Research Objective", "", 3, seal)
     text(slide, "Recommend ten fit-catalog channels the viewer has never watched.",
          1.15, 1.14, 7.70, 0.42, size=20, color=NAVY, bold=True,
          align=PP_ALIGN.CENTER)
@@ -405,7 +421,7 @@ def build() -> None:
     text(slide, "personalized Top-10", 4.49, 4.47, 1.55, 0.22, size=11.5, color=GRAY)
     text(slide, "TEST", 6.72, 4.47, 0.48, 0.22, size=10.5, color=TEAL, bold=True)
     text(slide, "chronological holdout", 7.22, 4.47, 1.65, 0.22, size=11.5, color=GRAY)
-    add_notes(slide, "Objective", "1:25–2:10 (45 sec)",
+    add_notes(slide, "Research Objective", "1:25–2:10 (45 sec)",
               "The objective is to recommend ten channels from the fit catalog that the viewer has never "
               "watched. The input is past binary viewing history. The model ranks the full known catalog after "
               "excluding seen channels, returns a Top-10 unseen list, and is evaluated against future first-time "
@@ -438,7 +454,7 @@ def build() -> None:
 
     # 5 — Task and protocol
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "Task Definition and Temporal Split",
+    add_header(slide, "Experimental Protocol",
                "Model selection is chronological; the test set is used exactly once.", 5, seal)
     stages = [
         (0.58, "History", "Binary views\ndays 0–29"),
@@ -463,7 +479,7 @@ def build() -> None:
         "53,212 eligible users and 104,818 user-day cases in the primary held-out test",
         "10,000 user-clustered paired bootstrap draws with Holm correction",
     ], 2.20, 3.51, 7.10, 1.18, size=12.5, space_after=4)
-    add_notes(slide, "Prediction Task and Evaluation Protocol", "3:25–4:45 (80 sec)",
+    add_notes(slide, "Experimental Protocol", "3:25–4:45 (80 sec)",
               "The first thirty days fit candidate models, the next six select hyperparameters, "
               "and the final seven form the held-out test. After selection, the models are refit "
               "through day thirty-five. Each user is ranked against the full fit catalog after "
@@ -473,7 +489,7 @@ def build() -> None:
 
     # 6 — Models
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "Recommendation Models",
+    add_header(slide, "Compared Recommendation Models",
                "The comparison isolates global popularity, local co-view structure, and latent preference.",
                6, seal)
     rows = [
@@ -493,7 +509,7 @@ def build() -> None:
          align=PP_ALIGN.CENTER)
     text(slide, "BPR: Rendle et al., UAI 2009.", 0.92, 5.08, 2.60, 0.16,
          size=8.5, color=MID)
-    add_notes(slide, "Models", "4:45–6:15 (90 sec)",
+    add_notes(slide, "Compared Recommendation Models", "4:45–6:15 (90 sec)",
               "Popularity and recent popularity establish whether personalization is useful. "
               "ItemKNN uses cosine similarity between channels based on shared viewers, directly "
               "retaining local co-view relationships. BPR learns user and item factors with a "
@@ -503,7 +519,7 @@ def build() -> None:
 
     # 7 — Implementation and tuning
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "Sparse Implementation and Validation Selection",
+    add_header(slide, "Model Selection and Sparse Implementation",
                "Sparse computation avoids materializing the 162K × 162K item-similarity matrix.",
                7, seal)
     picture_fit(slide, ROOT / "outputs/assignment2/figures/hybrid_ablation.png",
@@ -522,7 +538,7 @@ def build() -> None:
          size=9.5, color=TEAL, bold=True)
     text(slide, "Sparse blocks · top-200 neighbors · seed 258",
          7.47, 4.48, 1.96, 0.26, size=10.5, color=NAVY, bold=True)
-    add_notes(slide, "Implementation and Hyperparameter Selection", "6:15–7:30 (75 sec)",
+    add_notes(slide, "Model Selection and Sparse Implementation", "6:15–7:30 (75 sec)",
               "ItemKNN is computed with sparse block multiplication and only the top two hundred "
               "neighbors per channel are retained, so the dense item-item matrix is never created. "
               "Validation compares three neighborhood sizes, eight BPR configurations, and twenty "
@@ -532,7 +548,7 @@ def build() -> None:
 
     # 8 — Metrics
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "Evaluation Metrics and Statistical Inference",
+    add_header(slide, "Evaluation Criteria and Statistical Inference",
                "Ranking accuracy and recommendation breadth answer different scientific questions.",
                8, seal)
     metric_cards = [
@@ -558,7 +574,7 @@ def build() -> None:
     text(slide, "Model selection uses validation NDCG@10; all other metrics are diagnostic.",
          1.18, 4.90, 7.65, 0.26, size=12, color=TEAL, bold=True,
          align=PP_ALIGN.CENTER)
-    add_notes(slide, "Evaluation Metrics", "7:30–8:45 (75 sec)",
+    add_notes(slide, "Evaluation Criteria and Statistical Inference", "7:30–8:45 (75 sec)",
               "Recall measures how many future discoveries are recovered. NDCG additionally rewards "
               "placing correct channels earlier and is the primary validation metric. Hit rate asks "
               "whether a case has at least one success. Coverage asks how much of the catalog is ever "
@@ -566,13 +582,13 @@ def build() -> None:
               "concentration, while candidate coverage identifies answers that no collaborative model "
               "could retrieve because the channel was absent during fitting.")
 
-    # 9 — Main results
+    # 9 — Experiment 1: overall model comparison
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "Hybrid Achieves NDCG@10 = 0.1315",
-               "Hybrid improves ranking accuracy, while ItemKNN retains broader catalog exposure.",
-               9, seal)
+    add_header(slide, "Experiment 1: Overall Model Comparison", "", 9, seal)
+    add_experiment_question(slide,
+                            "Which model best ranks unseen channels, and what accuracy–coverage trade-off follows?")
     picture_fit(slide, ROOT / "outputs/figures/test_accuracy.png",
-                0.45, 1.24, 5.65, 3.76)
+                0.45, 1.50, 5.55, 3.08)
     add_flat_table(slide, [
         ["Model", "NDCG@10", "Recall@10", "Coverage"],
         ["Hybrid", "0.13148", "0.22342", "26.36%"],
@@ -580,14 +596,14 @@ def build() -> None:
         ["Count ItemKNN", "0.11694", "0.19862", "40.50%"],
         ["BPR", "0.05420", "0.09328", "0.62%"],
         ["Recent popularity", "0.03779", "0.06195", "0.02%"],
-    ], 6.18, 1.40, [1.32, 0.78, 0.78, 0.78], row_h=0.46, font_size=9.7)
-    text(slide, "+4.48% NDCG vs. ItemKNN", 6.42, 4.42, 2.78, 0.28,
-         size=15, color=TEAL, bold=True, align=PP_ALIGN.CENTER)
-    text(slide, "but 10.35 percentage points less catalog coverage",
-         6.30, 4.76, 3.08, 0.25, size=10.8, color=GRAY,
-         align=PP_ALIGN.CENTER)
-    add_notes(slide, "Main Test Results", "8:45–10:30 (105 sec)",
-              "Hybrid is the most accurate model with NDCG point one three one five and recall point "
+    ], 6.18, 1.60, [1.32, 0.78, 0.78, 0.78], row_h=0.44, font_size=9.5)
+    text(slide, "Primary metric: NDCG@10", 6.32, 4.40, 2.92, 0.22,
+         size=10.5, color=MID, align=PP_ALIGN.CENTER)
+    add_experiment_finding(slide,
+                           "Hybrid gains 4.48% NDCG over ItemKNN, but exposes 10.35 pp less of the catalog.")
+    add_notes(slide, "Experiment 1: Overall Model Comparison", "8:45–10:30 (105 sec)",
+              "Experiment one asks which method best ranks unseen channels and whether accuracy changes catalog "
+              "exposure. Hybrid is the most accurate model with NDCG point one three one five and recall point "
               "two two three four. ItemKNN is the strongest single model. All personalized methods "
               "beat popularity, establishing that viewer history contains predictive signal. The hybrid "
               "gain over ItemKNN is four point four eight percent in NDCG, but coverage falls from about "
@@ -595,13 +611,13 @@ def build() -> None:
               "largest share of the catalog. Thus the hybrid is best for ranking accuracy, but not for every "
               "diversity objective.")
 
-    # 10 — BPR and hybrid
+    # 10 — Experiment 2: BPR failure and complementarity
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "BPR Trails ItemKNN by 56.9% in NDCG@10",
-               "The latent model is mismatched to the data, yet it retrieves positives missed by ItemKNN.",
-               10, seal)
-    text(slide, "Why BPR is mismatched", 0.72, 1.38, 2.45, 0.28,
-         size=15, color=NAVY, bold=True)
+    add_header(slide, "Experiment 2: BPR Failure and Complementarity", "", 10, seal)
+    add_experiment_question(slide,
+                            "Why does BPR lag ItemKNN, and can its unique hits still improve the hybrid?")
+    text(slide, "Failure hypotheses", 0.72, 1.62, 2.45, 0.28,
+         size=14.5, color=NAVY, bold=True)
     mismatch = [
         ("Sparse tail", "item factors receive little evidence"),
         ("Noisy negatives", "offline may be mistaken for dislike"),
@@ -609,26 +625,29 @@ def build() -> None:
         ("Objective gap", "pairwise loss differs from full-catalog Top-10"),
     ]
     for index, (heading, explanation) in enumerate(mismatch):
-        y = 1.82 + index * 0.69
+        y = 2.00 + index * 0.62
         oval(slide, 0.76, y + 0.06, 0.13, 0.13, TEAL)
         text(slide, heading, 1.02, y, 1.38, 0.25,
              size=12, color=NAVY, bold=True)
         text(slide, explanation, 2.34, y, 2.37, 0.34,
-             size=11, color=GRAY)
-    rect(slide, 5.02, 1.32, 0.035, 3.56, GRID)
-    text(slide, "Complementary hits", 5.42, 1.38, 2.05, 0.28,
-         size=15, color=NAVY, bold=True)
-    add_metric_line(slide, 5.30, 1.88, "22,559", "ItemKNN only", BLUE)
-    add_metric_line(slide, 7.42, 1.88, "5,540", "BPR only", ORANGE)
-    add_metric_line(slide, 5.30, 3.14, "7,648", "both models", GREEN)
-    text(slide, "Hybrid − ItemKNN", 7.20, 3.23, 2.0, 0.24,
+             size=10.5, color=GRAY)
+    rect(slide, 5.02, 1.55, 0.035, 3.02, GRID)
+    text(slide, "Hit overlap analysis", 5.42, 1.62, 2.05, 0.28,
+         size=14.5, color=NAVY, bold=True)
+    add_metric_line(slide, 5.30, 1.98, "22,559", "ItemKNN only", BLUE)
+    add_metric_line(slide, 7.42, 1.98, "5,540", "BPR only", ORANGE)
+    add_metric_line(slide, 5.30, 3.08, "7,648", "both models", GREEN)
+    text(slide, "Hybrid − ItemKNN", 7.20, 3.17, 2.0, 0.24,
          size=12, color=GRAY, align=PP_ALIGN.CENTER)
-    text(slide, "+0.005638", 7.20, 3.55, 2.0, 0.33,
+    text(slide, "+0.005638", 7.20, 3.49, 2.0, 0.33,
          size=21, color=TEAL, bold=True, align=PP_ALIGN.CENTER)
     text(slide, "95% CI [0.005201, 0.006088] · Holm p = 0.0024",
-         5.42, 4.57, 3.78, 0.24, size=10.5, color=MID,
+         5.42, 4.34, 3.78, 0.24, size=10.5, color=MID,
          align=PP_ALIGN.CENTER)
-    add_notes(slide, "Why BPR Underperforms—and Still Helps", "10:30–12:10 (100 sec)",
+    add_experiment_finding(slide,
+                           "BPR is weak alone but adds complementary hits; the hybrid gain is significant.")
+    add_notes(slide, "Experiment 2: BPR Failure and Complementarity", "10:30–12:10 (100 sec)",
+              "Experiment two asks why BPR underperforms and whether its errors differ enough to help a hybrid. "
               "BPR is disadvantaged by the long tail because many item factors receive little data. "
               "A missing interaction is also a noisy negative on a live platform, and one uniformly "
               "sampled negative per positive is typically trivial. Finally, random pairwise training "
@@ -637,82 +656,81 @@ def build() -> None:
               "retrieves more than five thousand positives. That complementary signal yields a modest "
               "hybrid gain whose user-clustered confidence interval excludes zero after correction.")
 
-    # 11 — Ablations and subgroups
+    # 11 — Experiment 3: representation and subgroup analysis
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "Binary Feedback Helps; Tail Recall Is Only 0.0328",
-               "Discovery is hardest for long-history users and long-tail target channels.", 11, seal)
+    add_header(slide, "Experiment 3: Representation and Subgroup Analysis", "", 11, seal)
+    add_experiment_question(slide,
+                            "Do counts help, and which user or channel subgroups are hardest?")
     picture_fit(slide, ROOT / "outputs/assignment2/figures/feature_representation.png",
-                0.48, 1.24, 4.18, 2.72)
+                0.48, 1.52, 4.18, 2.52)
     picture_fit(slide, ROOT / "outputs/assignment2/figures/channel_popularity_subgroups.png",
-                5.02, 1.24, 4.50, 2.72)
-    rect(slide, 0.68, 4.18, 8.70, 0.035, GRID)
-    findings = [
-        (0.72, "Binary > count", "0.12584 vs. 0.11694 NDCG"),
-        (3.70, "Tail target recall", "0.0328 in least-popular quartile"),
-        (6.68, "Long histories", "NDCG falls to 0.0901 at 25+ channels"),
-    ]
-    for x, heading, body in findings:
-        text(slide, heading, x, 4.44, 2.40, 0.24,
-             size=12, color=NAVY, bold=True, align=PP_ALIGN.CENTER)
-        text(slide, body, x, 4.74, 2.40, 0.28,
-             size=10.5, color=TEAL, bold=True, align=PP_ALIGN.CENTER)
-    add_notes(slide, "Feature Ablation and Subgroup Behavior", "12:10–13:40 (90 sec)",
-              "Binary ItemKNN outperforms count weighting for new-channel discovery, indicating that "
+                5.02, 1.52, 4.50, 2.52)
+    text(slide, "Binary vs. count: 0.12584 vs. 0.11694 NDCG",
+         0.74, 4.18, 3.70, 0.22, size=10.5, color=TEAL,
+         bold=True, align=PP_ALIGN.CENTER)
+    text(slide, "Least-popular target recall: 0.0328",
+         5.36, 4.18, 3.70, 0.22, size=10.5, color=TEAL,
+         bold=True, align=PP_ALIGN.CENTER)
+    add_experiment_finding(slide,
+                           "Distinct-channel history beats counts; sparse targets and long histories are hardest.")
+    add_notes(slide, "Experiment 3: Representation and Subgroup Analysis", "12:10–13:40 (90 sec)",
+              "Experiment three asks whether interaction counts improve the representation and which subgroups "
+              "remain hardest. Binary ItemKNN outperforms count weighting for new-channel discovery, indicating that "
               "the set of distinct channels matters more than repeatedly amplifying familiar channels. "
               "The subgroup analysis reveals a larger limitation. Recall is only about point zero three "
               "three for targets in the least-popular quartile, compared with over point four for the "
               "most-popular quartile. NDCG also declines as viewer history grows, likely because easy "
               "similar channels have already been consumed. Zero-history viewers require a popularity fallback.")
 
-    # 12 — Temporal robustness
+    # 12 — Experiment 4: temporal robustness
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "Model Ordering Is Stable Across Time",
-               "", 12, seal)
+    add_header(slide, "Experiment 4: Temporal Robustness", "", 12, seal)
+    add_experiment_question(slide,
+                            "Does the model ranking persist when the target window moves through time?")
     picture_fit(slide, ROOT / "outputs/assignment2/figures/rolling_backtest.png",
-                0.45, 1.20, 5.65, 3.95)
+                0.45, 1.48, 5.58, 3.08)
     add_flat_table(slide, [
         ["Model", "Early", "Middle", "Late"],
         ["Hybrid", "0.1591", "0.1491", "0.1315"],
         ["ItemKNN", "0.1467", "0.1407", "0.1258"],
         ["BPR", "0.0723", "0.0681", "0.0542"],
         ["Best popularity", "0.0427", "0.0411", "0.0378"],
-    ], 6.05, 1.55, [1.35, 0.78, 0.78, 0.78], row_h=0.48, font_size=10.8)
-    text(slide, "NDCG@10", 7.02, 4.12, 2.05, 0.24, size=11, color=MID,
-         align=PP_ALIGN.CENTER)
-    text(slide,
-         "Absolute accuracy declines over time, but every window preserves\nHybrid > ItemKNN > BPR > popularity.",
-         6.12, 4.50, 3.35, 0.56, size=12.5, color=NAVY,
-         align=PP_ALIGN.CENTER)
-    add_notes(slide, "Temporal Robustness", "13:40–14:55 (75 sec)",
-              "Rolling-origin evaluation repeats the comparison in early, middle, and late target windows. "
+    ], 6.05, 1.62, [1.35, 0.78, 0.78, 0.78], row_h=0.48, font_size=10.8)
+    text(slide, "NDCG@10 across rolling-origin windows", 6.20, 4.20, 3.15, 0.22,
+         size=10.5, color=MID, align=PP_ALIGN.CENTER)
+    add_experiment_finding(slide,
+                           "Every window preserves Hybrid > ItemKNN > BPR > popularity, although NDCG declines.")
+    add_notes(slide, "Experiment 4: Temporal Robustness", "13:40–14:55 (75 sec)",
+              "Experiment four tests whether the model ordering is tied to one target period. Rolling-origin "
+              "evaluation repeats the comparison in early, middle, and late target windows. "
               "Absolute NDCG declines as the observation period advances, from point one five nine to point "
               "one three one for the hybrid. However, all three windows preserve the ordering Hybrid, ItemKNN, "
               "BPR, then popularity. This reduces the risk that the main conclusion is specific to a single "
               "held-out period, although it also shows that temporal drift affects absolute accuracy.")
 
-    # 13 — Scalability
+    # 13 — Experiment 5: scalability
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "Hybrid NDCG Is Stable from 100K to 1M Users",
-               "", 13, seal)
+    add_header(slide, "Experiment 5: Scalability", "", 13, seal)
+    add_experiment_question(slide,
+                            "Do the conclusions remain stable as the user cohort grows from 100K to 1M?")
     picture_fit(slide, ROOT / "outputs/assignment2/figures/scalability_ndcg.png",
-                0.45, 1.20, 5.70, 3.95)
+                0.45, 1.48, 5.62, 3.08)
     add_flat_table(slide, [
         ["Scale", "Hybrid", "ItemKNN", "BPR"],
         ["100K", "0.1317", "0.1267", "0.0558"],
         ["200K", "0.1301", "0.1261", "0.0530"],
         ["500K", "0.1289", "0.1269", "0.0419"],
         ["1M", "0.1317", "0.1304", "0.0430"],
-    ], 6.12, 1.55, [0.82, 0.96, 0.96, 0.86], row_h=0.48, font_size=10.6)
-    text(slide, "Matched protocol", 6.12, 4.12, 1.45, 0.24,
-         size=11.5, color=NAVY, bold=True)
+    ], 6.12, 1.62, [0.82, 0.96, 0.96, 0.86], row_h=0.48, font_size=10.6)
     text(slide,
-         "Seed 258; same search grid; validation ≤2,000; test ≤5,000; full-catalog ranking.",
-         7.55, 4.09, 2.25, 0.50, size=10.5, color=GRAY)
-    text(slide,
-         "Cohorts and catalogs are not nested; this is robustness and engineering scalability evidence, not a causal learning curve.",
-         6.12, 4.68, 3.65, 0.48, size=10.5, color=MID)
-    add_notes(slide, "Scalability", "14:55–16:10 (75 sec)",
-              "Matched-protocol runs were completed at one hundred thousand, two hundred thousand, five hundred "
+         "Matched protocol: seed 258 · same search grid · full-catalog ranking\nCohorts are not nested; interpret this as robustness, not a causal learning curve.",
+         6.14, 4.10, 3.45, 0.48, size=9.8, color=MID,
+         align=PP_ALIGN.CENTER)
+    add_experiment_finding(slide,
+                           "Hybrid and ItemKNN remain stable; BPR weakens as the channel catalog expands.")
+    add_notes(slide, "Experiment 5: Scalability", "14:55–16:10 (75 sec)",
+              "Experiment five asks whether the conclusions remain stable as user scale increases. Matched-protocol "
+              "runs were completed at one hundred thousand, two hundred thousand, five hundred "
               "thousand, and one million users. Hybrid NDCG stays within a narrow point one two eight nine to point "
               "one three one seven interval, and ItemKNN is also stable. BPR declines as the channel catalog expands. "
               "All runs use the same seed, search grid, user caps, and full-catalog ranking. Because the cohorts and "
@@ -721,7 +739,7 @@ def build() -> None:
 
     # 14 — Related work
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "Relation to LiveRec and Prior Work",
+    add_header(slide, "Connection to Prior Work",
                "", 14, seal)
     add_flat_table(slide, [
         ["Aspect", "LiveRec (Rappaz et al., 2021)", "This study"],
@@ -736,7 +754,7 @@ def build() -> None:
          "Rendle et al. (2009): Bayesian Personalized Ranking · "
          "He et al. (2020): LightGCN for graph collaborative filtering",
          3.10, 4.39, 6.20, 0.48, size=11.5, color=GRAY)
-    add_notes(slide, "Relation to Prior Work", "16:10–17:25 (75 sec)",
+    add_notes(slide, "Connection to Prior Work", "16:10–17:25 (75 sec)",
               "LiveRec uses the same underlying Twitch data, but its target is currently available "
               "live content and repeat behavior. This project isolates discovery of never-watched channels "
               "and only has a seven-day activity proxy, so numerical results should not be compared directly. "
@@ -745,7 +763,7 @@ def build() -> None:
 
     # 15 — Limitations and future work
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "Limitations and Future Work",
+    add_header(slide, "Limitations and Next Experiments",
                "The dominant open problems are candidate generation, live availability, and objective alignment.",
                15, seal)
     rows = [
@@ -762,7 +780,7 @@ def build() -> None:
          "A stronger model alone cannot solve missing candidates or unavailable channels.",
          1.05, 4.85, 7.90, 0.28, size=14, color=TEAL, bold=True,
          align=PP_ALIGN.CENTER)
-    add_notes(slide, "Limitations and Future Work", "17:25–18:45 (80 sec)",
+    add_notes(slide, "Limitations and Next Experiments", "17:25–18:45 (80 sec)",
               "The main limitations are not only model capacity. Catalog-cold channels cannot be ranked "
               "without content or creator features. Missing exact live status makes negative feedback noisy. "
               "Uniform BPR negatives are usually easy and should be replaced with hard or popularity-aware "
