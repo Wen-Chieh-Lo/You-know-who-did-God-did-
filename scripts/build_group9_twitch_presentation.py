@@ -10,6 +10,8 @@ from pptx import Presentation
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_AUTO_SHAPE_TYPE
 from pptx.enum.text import MSO_ANCHOR, PP_ALIGN
+from pptx.oxml.ns import qn
+from pptx.oxml.xmlchemy import OxmlElement
 from pptx.util import Inches, Pt
 
 
@@ -198,6 +200,28 @@ def add_process_arrow(slide, x: float, y: float) -> None:
     no_line(shape)
 
 
+def flatten_shape_effects(shape) -> None:
+    """Remove template theme effect references and explicitly apply an empty effect list."""
+    element = shape._element
+    style = element.find(qn("p:style"))
+    if style is not None:
+        element.remove(style)
+    sp_pr = element.find(qn("p:spPr"))
+    if sp_pr is None:
+        return
+    for tag in ("a:effectLst", "a:effectDag", "a:scene3d", "a:sp3d"):
+        node = sp_pr.find(qn(tag))
+        if node is not None:
+            sp_pr.remove(node)
+    sp_pr.append(OxmlElement("a:effectLst"))
+
+
+def flatten_presentation_effects(prs: Presentation) -> None:
+    for slide in prs.slides:
+        for shape in slide.shapes:
+            flatten_shape_effects(shape)
+
+
 def build() -> None:
     OUT.parent.mkdir(parents=True, exist_ok=True)
     prs = Presentation(TEMPLATE)
@@ -228,35 +252,43 @@ def build() -> None:
               "before and ask whether those channels are discovered in the future. The main "
               "question is which modeling assumptions work under extremely sparse implicit feedback.")
 
-    # 2 — Research question and contributions
+    # 2 — Motivation and objective
     slide = prs.slides.add_slide(blank)
-    add_header(slide, "Research Question and Contributions",
-               "Can past viewing behavior predict future discovery of unseen channels?", 2, seal)
-    text(slide, "Research question", 0.72, 1.62, 2.25, 0.34,
-         size=16, color=NAVY, bold=True)
-    text(slide,
-         "Given a viewer's history, rank ten fit-catalog channels that the viewer has never watched.",
-         0.72, 2.03, 2.70, 1.15, size=15.5, color=GRAY)
-    rect(slide, 3.55, 1.54, 0.035, 2.95, GRID)
-    text(slide, "Contributions", 3.90, 1.62, 2.0, 0.34,
+    add_header(slide, "Motivation and Objective",
+               "New-channel discovery is distinct from optimizing repeat viewing.", 2, seal)
+    text(slide, "Motivation", 0.72, 1.62, 2.25, 0.34,
          size=16, color=NAVY, bold=True)
     bullets(slide, [
-        "Leakage-safe chronological evaluation with full-catalog ranking",
-        "Comparison of popularity, ItemKNN, BPR, and a score-level hybrid",
-        "Accuracy–diversity, cold-start, subgroup, temporal, and scaling analyses",
-        "Empirical diagnosis of why BPR underperforms on this dataset",
-    ], 3.85, 2.00, 5.42, 2.35, size=14.5, space_after=6)
-    text(slide, "Primary finding", 0.72, 3.67, 2.25, 0.30,
-         size=13, color=TEAL, bold=True)
-    text(slide, "Hybrid NDCG@10 = 0.1315", 0.72, 4.03, 2.70, 0.38,
-         size=20, color=TEAL, bold=True)
-    add_notes(slide, "Research Question and Contributions", "0:30–2:00 (90 sec)",
-              "The prediction task is to recommend ten channels that are new to the viewer. "
-              "The project makes four contributions. First, it uses a chronological, full-catalog "
-              "evaluation that prevents future leakage. Second, it compares strong simple baselines "
-              "with personalized neighborhood and latent-factor methods. Third, it studies diversity, "
-              "cold-start, subgroups, time shifts, and scale rather than reporting one number. Finally, "
-              "it diagnoses the weak BPR result instead of treating it as an unexplained failure.")
+        "A catalog of 162K channels makes organic discovery difficult",
+        "Long-tail channels provide little interaction data",
+        "Dynamic live availability makes non-interaction ambiguous",
+        "Engagement-oriented recommenders can overemphasize repeats and popular creators",
+    ], 0.72, 2.02, 3.55, 2.15, size=13.5, space_after=6)
+    rect(slide, 4.58, 1.54, 0.035, 3.05, GRID)
+    text(slide, "Objective", 4.95, 1.62, 2.0, 0.34,
+         size=16, color=NAVY, bold=True)
+    text(slide,
+         "Rank ten fit-catalog channels that a viewer has never watched, using only past implicit feedback.",
+         4.95, 2.05, 4.05, 0.90, size=18, color=NAVY, bold=True)
+    text(slide, "Evaluation target", 4.95, 3.25, 2.0, 0.28,
+         size=13.5, color=TEAL, bold=True)
+    text(slide,
+         "Future first-time views in a chronological holdout, evaluated for both ranking accuracy and catalog breadth.",
+         4.95, 3.64, 4.02, 0.76, size=14.5, color=GRAY)
+    rect(slide, 0.72, 4.47, 3.55, 0.035, TEAL)
+    text(slide, "Working hypothesis", 0.72, 4.65, 1.50, 0.25,
+         size=12.5, color=TEAL, bold=True)
+    text(slide, "Local co-view structure may be more reliable than global latent factors under extreme sparsity.",
+         2.18, 4.61, 6.82, 0.45, size=12.5, color=NAVY)
+    add_notes(slide, "Motivation and Objective", "0:30–2:00 (90 sec)",
+              "Twitch contains over one hundred sixty-two thousand channels in this subset alone, "
+              "so viewers face a substantial discovery problem. The long tail leaves many channels "
+              "with little behavioral data, and dynamic live availability makes a missing interaction "
+              "ambiguous. In addition, engagement-oriented recommendation can favor repeat viewing and "
+              "already-popular creators. Our objective is therefore to rank ten fit-catalog channels that "
+              "a viewer has never watched, using only past implicit feedback, and evaluate future first-time "
+              "views in a chronological holdout. We hypothesize that local co-view structure will be more "
+              "reliable than global latent factors under this level of sparsity.")
 
     # 3 — Dataset and EDA
     slide = prs.slides.add_slide(blank)
@@ -604,6 +636,7 @@ def build() -> None:
               "automatically. The central conclusion is that recommendation quality depends on aligning the "
               "data, prediction target, and training objective. Thank you.")
 
+    flatten_presentation_effects(prs)
     prs.save(OUT)
     lines = [
         "# Group 9 Twitch presentation — speaker notes",

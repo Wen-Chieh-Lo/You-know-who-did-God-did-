@@ -10,11 +10,11 @@ Timing: 0:00–0:30 (30 sec)
 
 This project studies new-channel recommendation on Twitch. Rather than predicting repeat viewing, we rank channels that a viewer has never watched before and ask whether those channels are discovered in the future. The main question is which modeling assumptions work under extremely sparse implicit feedback.
 
-## 2. Research Question and Contributions
+## 2. Motivation and Objective
 
 Timing: 0:30–2:00 (90 sec)
 
-The prediction task is to recommend ten channels that are new to the viewer. The project makes four contributions. First, it uses a chronological, full-catalog evaluation that prevents future leakage. Second, it compares strong simple baselines with personalized neighborhood and latent-factor methods. Third, it studies diversity, cold-start, subgroups, time shifts, and scale rather than reporting one number. Finally, it diagnoses the weak BPR result instead of treating it as an unexplained failure.
+Twitch contains over one hundred sixty-two thousand channels in this subset alone, so viewers face a substantial discovery problem. The long tail leaves many channels with little behavioral data, and dynamic live availability makes a missing interaction ambiguous. In addition, engagement-oriented recommendation can favor repeat viewing and already-popular creators. Our objective is therefore to rank ten fit-catalog channels that a viewer has never watched, using only past implicit feedback, and evaluate future first-time views in a chronological holdout. We hypothesize that local co-view structure will be more reliable than global latent factors under this level of sparsity.
 
 ## 3. Dataset and Exploratory Analysis
 
