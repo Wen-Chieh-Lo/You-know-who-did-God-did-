@@ -4,6 +4,7 @@
   "backtest_rows": 15,
   "period_level_rows": 6,
   "bpr_seed_rows": 10,
+  "validation_stability_rows": 30,
   "data_quality": {
     "rows": 3051733,
     "missing_cells": 0,
@@ -21,9 +22,9 @@
     "hybrid_ablation.png",
     "period_level_cold_start.png",
     "rolling_backtest.png",
+    "scalability_ndcg.png",
     "scaling.png",
     "user_history_subgroups.png",
     "validation_sample_stability.png"
-  ],
-  "validation_stability_rows": 30
+  ]
 }

@@ -201,3 +201,9 @@ Run `twitch-recs assignment-analysis --config configs/full.yaml`. Raw outputs ar
 `outputs/assignment2/tables/`; presentation-ready figures are in
 `outputs/assignment2/figures/`. The bootstrap cluster unit, sample count, backtest day
 boundaries, selected model settings, and random seed are recorded in code and config.
+
+The complete supplementary workflow was rerun successfully after adding the 500k
+scale point. It finished in 1,624.07 wall-clock seconds and produced 12 bootstrap rows,
+15 rolling-backtest rows, six protocol-sensitivity rows, ten BPR multi-seed rows,
+30 validation-sample-stability rows, and 11 figures. Accuracy metrics matched the
+previous deterministic artifacts; only measured per-seed runtimes changed.
