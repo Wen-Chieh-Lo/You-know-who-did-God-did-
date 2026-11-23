@@ -96,6 +96,11 @@ The resulting tables and presentation-ready figures are written under
 `outputs/assignment2/`; their interpretation is summarized in
 [`reports/ASSIGNMENT_EXPERIMENTS.md`](reports/ASSIGNMENT_EXPERIMENTS.md).
 
+The reproducible 17-slide Traditional-Chinese Assignment 2 deck and its timed
+speaker notes are in [`presentation/`](presentation/README.md). Rebuild them with
+`python scripts/build_assignment2_slides.py` after installing the optional
+`presentation` dependencies.
+
 Additional no-metadata models (LightGCN, SASRec, GRU4Rec, time-decayed ItemKNN,
 and a clearly labelled LiveRec-like seven-day availability proxy) are reproduced with:
 
