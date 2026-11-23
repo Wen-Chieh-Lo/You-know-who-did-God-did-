@@ -1,0 +1,46 @@
+seed: 258
+data:
+  url: https://mcauleylab.ucsd.edu/public_datasets/gdrive/twitch/100k_a.csv
+  raw_path: data/raw/100k_a.csv
+  cache_path: data/processed/interactions.parquet
+split:
+  train_fraction: 0.70
+  validation_fraction: 0.15
+  slots_per_day: 144
+model:
+  top_k: 10
+  item_knn_neighbors: [50, 100, 200]
+  item_knn_batch_size: 512
+  bpr_factors: [32, 64]
+  bpr_learning_rates: [0.03]
+  bpr_regularizations: [0.0025, 0.01]
+  bpr_epochs: [10, 20]
+  bpr_negative_samples: 1
+  alphas: [0.0, 0.25, 0.5, 0.75, 1.0]
+  popularity_lambdas: [0.0, 0.05, 0.10, 0.20]
+  recent_days: 7
+evaluation:
+  max_validation_users: 5000
+  max_test_users: null
+  recommendation_item_chunk: 8192
+  recommendation_user_batch: 32
+  long_tail_quantile: 0.80
+outputs_dir: outputs
+assignment_analysis:
+  outputs_dir: outputs/assignment2
+  bootstrap_samples: 10000
+  reuse_completed_backtest: true
+  bpr_stability_seeds: [258, 1258, 2258, 3258, 4258]
+  bpr_stability_max_users: 5000
+  validation_sample_seeds: [258, 1258, 2258, 3258, 4258]
+  validation_sample_users: 5000
+  backtest_folds:
+    - name: early
+      fit_end_day: 17
+      target_start_day: 18
+      target_end_day: 23
+    - name: middle
+      fit_end_day: 23
+      target_start_day: 24
+      target_end_day: 29
+

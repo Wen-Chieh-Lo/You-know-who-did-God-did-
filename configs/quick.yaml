@@ -1,0 +1,29 @@
+seed: 258
+data:
+  url: https://mcauleylab.ucsd.edu/public_datasets/gdrive/twitch/100k_a.csv
+  raw_path: data/raw/100k_a.csv
+  cache_path: data/processed/interactions.parquet
+split:
+  train_fraction: 0.70
+  validation_fraction: 0.15
+  slots_per_day: 144
+model:
+  top_k: 10
+  item_knn_neighbors: [50]
+  item_knn_batch_size: 256
+  bpr_factors: [32]
+  bpr_learning_rates: [0.03]
+  bpr_regularizations: [0.01]
+  bpr_epochs: [3]
+  bpr_negative_samples: 1
+  alphas: [0.0, 0.5, 1.0]
+  popularity_lambdas: [0.0, 0.1]
+  recent_days: 7
+evaluation:
+  max_validation_users: 500
+  max_test_users: 1000
+  recommendation_item_chunk: 8192
+  recommendation_user_batch: 16
+  long_tail_quantile: 0.80
+outputs_dir: outputs
+
