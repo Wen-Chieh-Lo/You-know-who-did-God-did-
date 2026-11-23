@@ -1,0 +1,14 @@
+{
+  "item_knn": {
+    "neighbors": 200
+  },
+  "bpr": {
+    "factors": 64,
+    "learning_rate": 0.03,
+    "regularization": 0.0025,
+    "epochs": 20,
+    "negative_samples": 1,
+    "seed": 258
+  },
+  "hybrid_model_name": "hybrid_a0.75_p0.1"
+}

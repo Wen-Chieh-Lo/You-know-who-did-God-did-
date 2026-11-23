@@ -1,0 +1,29 @@
+seed: 258
+data:
+  full_source_path: data/raw/full_a.csv.gz
+  source_manifest_path: outputs_full/full_dataset_manifest.json
+  raw_path: data/processed/full_dataset_user_cohort_200k.csv
+  manifest_path: outputs_200k/cohort_manifest.json
+  database_path: data/processed/twitch_200k.duckdb
+  target_users: 200000
+split:
+  train_fraction: 0.70
+  validation_fraction: 0.15
+  slots_per_day: 144
+model:
+  top_k: 10
+  item_knn_neighbors: [50, 100, 200]
+  item_knn_batch_size: 256
+  bpr_factors: [32, 64]
+  bpr_learning_rates: [0.03]
+  bpr_regularizations: [0.0025, 0.01]
+  bpr_epochs: [10, 20]
+  bpr_negative_samples: 1
+  alphas: [0.0, 0.25, 0.5, 0.75, 1.0]
+  popularity_lambdas: [0.0, 0.05, 0.10, 0.20]
+  recent_days: 7
+evaluation:
+  max_validation_users: 2000
+  max_test_users: 5000
+  long_tail_quantile: 0.80
+outputs_dir: outputs_200k

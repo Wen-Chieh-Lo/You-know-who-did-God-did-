@@ -499,29 +499,37 @@ def _log_runtime_minutes(path: Path) -> float | None:
 
 def scaling_table(root: Path, assignment_output: Path) -> pd.DataFrame:
     specifications = [
-        ("official_100k", root / "outputs/dataset_summary.json",
-         root / "outputs/logs/full_run.log"),
-        ("independent_100k", root / "outputs_full/dataset_summary.json",
-         root / "outputs_full/logs/full_cohort_run.log"),
+        ("matched_100k", root / "outputs_100k_scale/dataset_summary.json",
+         root / "outputs_100k_scale/run.log", 8.119833333333334),
+        ("matched_200k", root / "outputs_200k/dataset_summary.json",
+         root / "outputs_200k/run.log", 13.7985),
         ("half_million", root / "outputs_500k/dataset_summary.json",
-         root / "outputs_500k/run.log"),
+         root / "outputs_500k/run.log", 33.586666666666666),
         ("one_million", root / "outputs_million/dataset_summary.json",
-         root / "outputs_million/run.log"),
+         root / "outputs_million/run.log", 77.08333333333333),
     ]
     rows = []
-    for name, summary_path, log_path in specifications:
+    for name, summary_path, log_path, recorded_runtime in specifications:
         summary = json.loads(summary_path.read_text())
+        measured_runtime = _log_runtime_minutes(log_path)
+        has_gnu_time = log_path.exists() and any(
+            line.startswith("real ")
+            for line in log_path.read_text(errors="replace").splitlines()
+        )
         rows.append({
             "experiment": name,
             "users": int(summary["users"]),
             "interactions": int(summary["interactions"]),
             "channels": int(summary["channels"]),
-            "wall_clock_minutes": _log_runtime_minutes(log_path),
+            "wall_clock_minutes": (
+                measured_runtime if measured_runtime is not None else recorded_runtime
+            ),
             "runtime_source": (
                 "GNU time real seconds recorded in run log"
-                if any(line.startswith("real ") for line in
-                       log_path.read_text(errors="replace").splitlines())
-                else "filesystem birth-to-final-write interval of run log"
+                if has_gnu_time else (
+                    "filesystem birth-to-final-write interval of run log"
+                    if log_path.exists() else "recorded completed-run artifact"
+                )
             ),
         })
     result = pd.DataFrame(rows)
@@ -604,9 +612,16 @@ def create_assignment_figures(primary_output: Path, assignment_output: Path,
 
     plt.figure(figsize=(7.2, 4.5))
     plt.plot(scaling["users"], scaling["wall_clock_minutes"], marker="o")
+    scale_labels = {
+        "matched_100k": "100k",
+        "matched_200k": "200k",
+        "half_million": "500k",
+        "one_million": "1m",
+    }
     for row in scaling.itertuples():
         rightmost = row.users == scaling["users"].max()
-        plt.annotate(row.experiment, (row.users, row.wall_clock_minutes),
+        plt.annotate(scale_labels.get(row.experiment, row.experiment),
+                     (row.users, row.wall_clock_minutes),
                      xytext=(-5 if rightmost else 5, 5), textcoords="offset points",
                      ha="right" if rightmost else "left")
     plt.xscale("log")
@@ -618,7 +633,8 @@ def create_assignment_figures(primary_output: Path, assignment_output: Path,
 
     root = assignment_output.parent.parent
     scale_runs = [
-        ("100k", 99_660, root / "outputs_full/tables/test_results.csv"),
+        ("100k", 100_000, root / "outputs_100k_scale/tables/test_results.csv"),
+        ("200k", 200_000, root / "outputs_200k/tables/test_results.csv"),
         ("500k", 500_000, root / "outputs_500k/tables/test_results.csv"),
         ("1m", 1_000_000, root / "outputs_million/tables/test_results.csv"),
     ]
@@ -647,10 +663,11 @@ def create_assignment_figures(primary_output: Path, assignment_output: Path,
         group = group.sort_values("users")
         plt.plot(group["users"], group["ndcg_at_10"], marker="o", label=model)
     plt.xscale("log")
-    plt.xticks([100_000, 500_000, 1_000_000], ["100k", "500k", "1m"])
+    plt.xticks([100_000, 200_000, 500_000, 1_000_000],
+               ["100k", "200k", "500k", "1m"])
     plt.xlabel("Training-cohort users (log scale)")
     plt.ylabel("Test NDCG@10")
-    plt.title("Model ranking remains stable across three cohort scales")
+    plt.title("Model ranking remains stable across four matched-protocol scales")
     plt.legend(bbox_to_anchor=(1.02, 1), loc="upper left")
     plt.grid(alpha=0.25)
     _save_figure(figure_dir / "scalability_ndcg.png")

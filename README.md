@@ -63,14 +63,20 @@ For the complete-file scalability experiments, first place the source file at
 experiment are reproduced with:
 
 ```bash
+twitch-recs extract-million --config configs/scaling_100k.yaml
+twitch-recs run-million --config configs/scaling_100k.yaml
+twitch-recs extract-million --config configs/scaling_200k.yaml
+twitch-recs run-million --config configs/scaling_200k.yaml
 twitch-recs extract-million --config configs/half_million.yaml
 twitch-recs run-million --config configs/half_million.yaml
 twitch-recs extract-million --config configs/million.yaml
 twitch-recs run-million --config configs/million.yaml
 ```
 
-This uses all selected users for model training and deterministic capped validation
-and test user samples for ranking. See
+All four matched-protocol runs use seed 258, the same hyperparameter grid, at most
+2,000 validation users and 5,000 test users, and exact full-catalog ranking. They use
+all selected users for model training and deterministic capped user samples for
+ranking. See
 [`reports/MILLION_USER_REPORT.md`](reports/MILLION_USER_REPORT.md) for the results,
 scope, and limitations.
 

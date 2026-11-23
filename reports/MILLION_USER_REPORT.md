@@ -83,27 +83,29 @@ ItemKNN remains substantially stronger than BPR alone, while BPR still supplies
 complementary hits. At the evaluated positive-pair level, BPR alone retrieves 421,
 ItemKNN alone retrieves 2,254, both retrieve 675, and neither retrieves 11,279.
 
-## Comparison with the independent approximately-100k cohort
+## Comparison with the matched-protocol exact-100k cohort
 
 | Model | 100k Recall@10 | 1m Recall@10 | 100k NDCG@10 | 1m NDCG@10 | NDCG change |
 |---|---:|---:|---:|---:|---:|
-| Hybrid alpha=0.75 | 0.224644 | 0.221204 | 0.132178 | 0.131703 | -0.000475 |
-| ItemKNN | 0.215126 | 0.218741 | 0.126534 | 0.130398 | +0.003864 |
-| BPR | 0.093488 | 0.081065 | 0.053731 | 0.043017 | -0.010715 |
-| Recent popularity | 0.061265 | 0.056563 | 0.037562 | 0.035291 | -0.002271 |
-| Popularity | 0.060668 | 0.057247 | 0.037277 | 0.035717 | -0.001560 |
+| Hybrid alpha=0.75 | 0.223404 | 0.221204 | 0.131664 | 0.131703 | +0.000039 |
+| ItemKNN | 0.216272 | 0.218741 | 0.126656 | 0.130398 | +0.003742 |
+| BPR | 0.099274 | 0.081065 | 0.055802 | 0.043017 | -0.012785 |
+| Recent popularity | 0.064194 | 0.056563 | 0.038313 | 0.035291 | -0.003022 |
+| Popularity | 0.061701 | 0.057247 | 0.037433 | 0.035717 | -0.001716 |
 
 The central conclusion is stable: hybrid is best, ItemKNN is the strongest single
 personalized model, and alpha 0.75 remains optimal. Hybrid NDCG changes by only
--0.000475 (-0.36%) despite a tenfold larger training cohort. ItemKNN improves,
++0.000039 (+0.03%) despite a tenfold larger training cohort. ItemKNN improves,
 whereas BPR alone declines on this test sample.
 
-These rows are not a controlled learning-curve estimate: the 100k run evaluates all
-52,794 eligible users in that cohort, while the one-million run evaluates a fixed
-sample of 4,895 eligible users from a different cohort. Differences therefore mix
-training-size, cohort, catalog, and finite-test-sample effects. Catalog coverage is
-especially not directly comparable because its denominator expands with the much
-larger fitted catalog.
+These rows are not a controlled learning-curve estimate: the 100k run evaluates
+4,789 eligible sampled users, while the one-million run evaluates 4,895 eligible
+sampled users from a different cohort. Both use seed 258, the same 2,000/5,000
+validation/test caps, hyperparameter grid, and full-catalog ranking, but differences
+still mix training-size, cohort, catalog, and finite-test-sample effects. Catalog
+coverage is especially not directly comparable because its denominator expands with
+the much larger fitted catalog. The exact 200k and 500k intermediate results are in
+`MILLION_USER_COMPARISON.md`.
 
 ## Limitations
 
