@@ -25,6 +25,7 @@ NOTES_OUT = ROOT / "presentation" / "Group_9_Presentation_Twitch_notes.md"
 MOTIVATION_FIGURE = ROOT / "outputs" / "figures" / "channel_ecdf_motivation.png"
 
 FONT = "Calibri"
+HEADER_FONT_SIZE = 18
 NAVY = RGBColor(0x12, 0x30, 0x47)
 TEAL = RGBColor(0x08, 0x7D, 0x8B)
 BLUE = RGBColor(0x35, 0x5D, 0x9B)
@@ -184,13 +185,10 @@ def add_seal(slide, seal: bytes) -> None:
 
 def add_header(slide, title_value: str, takeaway: str, number: int,
                seal: bytes) -> None:
-    # Keep every research title on one line and on the same baseline. Long,
-    # result-oriented titles use a smaller size instead of wrapping into the rule.
-    title_size = (22 if len(title_value) <= 36 else
-                  20 if len(title_value) <= 48 else
-                  17.5 if len(title_value) <= 62 else 16)
+    # Every content slide uses one consistent title size and baseline.
     text(slide, title_value, 0.68, 0.24, 8.16, 0.46,
-         size=title_size, color=NAVY, bold=True, valign=MSO_ANCHOR.MIDDLE)
+         size=HEADER_FONT_SIZE, color=NAVY, bold=True,
+         valign=MSO_ANCHOR.MIDDLE)
     rect(slide, 0.69, 0.88, 8.90, 0.045, TEAL)
     add_seal(slide, seal)
     add_footer(slide, number)
@@ -217,10 +215,11 @@ def add_flat_table(slide, rows: list[list[str]], x: float, y: float,
             cell.text = value
             cell.margin_left = cell.margin_right = Inches(0.05)
             cell.margin_top = cell.margin_bottom = Inches(0.03)
+            cell.vertical_anchor = MSO_ANCHOR.MIDDLE
             cell.fill.solid()
             cell.fill.fore_color.rgb = NAVY if r == 0 else (WHITE if r % 2 else LIGHT)
             for p in cell.text_frame.paragraphs:
-                p.alignment = PP_ALIGN.LEFT if c == 0 else PP_ALIGN.CENTER
+                p.alignment = PP_ALIGN.CENTER
                 p.font.name = FONT
                 p.font.size = Pt(font_size if r else font_size - 0.5)
                 p.font.bold = r == 0
