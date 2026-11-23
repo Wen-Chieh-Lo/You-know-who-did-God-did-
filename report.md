@@ -297,6 +297,130 @@ evaluation 時被刻意移除，造成極低 Recall/NDCG。高 novelty 與 long-
 「下一個觀看頻道（包含回訪）」任務，或重新建立只在 novel-channel events 上訓練的
 loss 與 hard-negative sampling。
 
+### 7.1 為什麼不同模型的表現差距這麼大？
+
+模型差距不能簡化成「某個演算法比較先進」或「deep learning 不適合」。目前證據顯示，
+結果是以下四個因素共同造成：資料分布、可用欄位、任務定義，以及模型的 inductive
+bias（模型天生較容易學到哪一類規律）。模型穩健性也有影響，但不是主要差距的唯一
+解釋。
+
+#### 7.1.1 資料分布：長尾與稀疏度是最重要的因素
+
+100k dataset 的 3,051,733 筆互動只形成 1,505,158 個不同 user-channel pairs；換句
+話說，約 **50.7%** 的 rows 是同一位使用者再次觀看已看過的頻道。頻道分布也極端不均：
+
+- 頻道的 distinct viewers 中位數只有 **1**；90th percentile 為 9，99th percentile
+  為 133，但最熱門頻道有 17,154 位不同觀眾。
+- 最熱門的 **1% 頻道吸收約 52.5%** 的 distinct user-channel pairs；最熱門 10%
+  吸收約 81.1%。
+- 使用者看過的不同頻道數中位數為 10，但 99th percentile 為 70，使用者歷史長度也
+  很不平均。
+
+這種分布特別有利於 ItemKNN。熱門及中型頻道之間有大量共同觀眾，cosine similarity
+能直接保存「看 A 的人也常看 B」的局部關係；不需要替每個冷門頻道估計完整的 latent
+vector。相反地，BPR 與 LightGCN 必須為大量只有一兩位觀眾的頻道學 embedding，長尾
+部分的估計容易不足，最後排序集中在少數高訊號頻道。BPR coverage 只有 0.62%，
+LightGCN 也只有 0.87%，支持這個解釋。
+
+Popularity subgroup 進一步提供直接證據：Hybrid 對最冷門 quartile targets 的 recall
+只有 **0.03278**，對最熱門 quartile 則達 **0.40755**。差距超過十二倍，表示「目標頻道
+有多少訓練訊號」對結果的影響非常大，不能只歸因於模型程式是否正確。
+
+#### 7.1.2 Dataset components：只有 ID 與時間，缺少辨識冷門頻道的內容訊號
+
+固定資料主要提供 user ID、channel name、stream ID、開始與停止 time slot。channel
+name 在模型中只作為識別碼，沒有遊戲分類、語言、標題文字、標籤、社群關係或可靠的
+推薦時刻 online status。因此模型只能從「誰看過誰」推理。
+
+這對不同方法的影響並不相同：
+
+- ItemKNN 可以從直接共同觀看取得訊號，所以在熱門及中型頻道仍然有效。
+- BPR、LightGCN、SASRec 與 GRU4Rec 沒有內容 side information 可以支援低互動 item。
+- fit period 從未出現的新頻道完全沒有可學 representation；測試期約 12% 的 novel
+  positives 屬於這種 catalog cold start。
+- LiveRec 的核心是推薦瞬間的 availability，但目前資料只能建立最近七天活躍 proxy，
+  無法完整重現原始模型。
+
+因此，換一個 collaborative algorithm 只能改善「已有足夠互動的頻道」。在不增加
+metadata 的前提下，任何模型都無法真正解決完全新頻道的 cold start。
+
+#### 7.1.3 Task definition：new-channel discovery 與一般 next-item prediction 不同
+
+SASRec 和 GRU4Rec 的標準訓練目標是根據序列預測下一個 item。在這份資料中約一半 rows
+屬於重複 user-channel consumption，所以最容易學到的規律是「使用者會回到熟悉的
+實況主」。但本專案的 inference 會排除所有已看過頻道，只評估新頻道發現。
+
+這形成明確的 objective mismatch：
+
+```text
+Sequence training：預測下一個觀看，回訪既有頻道通常是正確答案
+Current evaluation：既有頻道一律不能推薦，只有首次觀看才是正確答案
+```
+
+這比「SASRec 不夠 robust」更能解釋它的低分。模型可能成功學到 repeat consumption，
+只是該能力在目前 metric 中沒有價值。若改成一般 next-channel task，預期 sequence model
+會明顯改善；若保留 discovery task，則應只在 novel-channel transitions 上建立 training
+examples，並針對相似但未選擇的頻道做 hard-negative sampling。
+
+Time-decayed ItemKNN 也提供一個較溫和的 task evidence。它把近期互動權重提高後，
+NDCG 從 ItemKNN 的 0.12584 降至 0.12046，但 coverage 從 36.71% 上升至 43.61%。這表示
+在目前 43-day discovery task 中，完整歷史的穩定共同觀看關係比單純強調近期行為更能
+命中答案；recency 主要增加探索範圍，而不是提高準確度。
+
+#### 7.1.4 Method design：模型的 inductive bias 是否符合資料
+
+| 方法 | 最容易學到的訊號 | 與目前任務的配合程度 | 實驗結果 |
+|---|---|---|---|
+| Popularity | 全體共同的熱門趨勢 | 沒有個人化，只適合作 baseline | 最穩定但準確度低、coverage 極低 |
+| ItemKNN | 具體的局部共同觀看 | 非常符合「從已看 A 找相似新頻道 B」 | 最強單一模型 |
+| BPR | 低維 latent preference 與 pairwise ranking | 受稀疏 embedding、uniform negatives 影響 | 比熱門度好，但集中於少量頻道 |
+| LightGCN | 圖上的高階鄰居傳播 | 比 BPR 多利用結構，但仍依賴互動密度 | 比 BPR 好 10.4%，仍遠低於 ItemKNN |
+| SASRec／GRU4Rec | 互動順序與 repeat next-item pattern | 與排除 seen items 的 discovery task 不一致 | 準確度最低 |
+| Hybrid | ItemKNN 局部訊號加 BPR 的少量互補命中 | 能補回兩者各自漏掉的 positives | 最高 NDCG，但多樣性低於 ItemKNN |
+
+因此「簡單模型勝過深度模型」不代表簡單模型普遍較好，而是 ItemKNN 的 inductive bias
+恰好最符合目前資料與 target definition。LightGCN 雖比 BPR 好，仍無法取代直接而強烈的
+co-view signal。
+
+#### 7.1.5 是不是模型不穩健或調參不足？
+
+部分是，但現有 robustness evidence 顯示它不足以解釋主要排序：
+
+- BPR 使用五個 seeds 的 NDCG 平均為 0.05457、SD 只有 0.00184；它沒有因某個 unlucky
+  seed 才輸給 ItemKNN。
+- Hybrid 在五個 BPR seeds 下的 NDCG SD 只有 0.00018，對 training randomness 很穩定。
+- 五個不同 validation-user samples 都選出 ItemKNN k=200、Hybrid α=0.75、λ=0。
+- early、middle、late 三個 temporal windows 都維持 Hybrid > ItemKNN > BPR >
+  popularity；雖然後期絕對準確度下降，模型排序沒有翻轉。
+- 獨立約 100k cohort 與 1m cohort 也維持相近排序。
+
+所以原本四類模型的結論具有一定穩健性。不過新增 deep models 目前使用固定合理設定，
+尚未進行與原始模型相同規模的 hyperparameter、loss、negative sampling 與 multi-seed
+搜尋。因此可以可靠地說「這些目前版本沒有比較好」，但不能說「SASRec、GRU4Rec 或
+LightGCN 在所有設定下都一定不適合」。
+
+#### 7.1.6 如何進一步分離各原因？
+
+目前結果是 observational diagnosis，無法只用一張總表把 distribution、task mismatch
+與 optimization 完全分離。最有資訊量的後續控制實驗是：
+
+1. **Density-controlled evaluation：** 分別在高／中／低互動頻道上比較模型，固定每組
+   的 users 和 positives，確認 LightGCN/BPR 是否只在 dense items 有效。
+2. **Repeat vs. discovery 雙任務：** 用相同模型同時測 next-channel（允許回訪）與
+   new-channel-only。若 SASRec 只在前者大幅改善，就能直接驗證 task mismatch。
+3. **Novel-transition sequence training：** 只保留每位使用者第一次接觸頻道的序列，
+   重新訓練 SASRec/GRU4Rec，使 training objective 與 discovery labels 對齊。
+4. **Negative-sampling ablation：** 對 BPR/LightGCN 比較 1、5、20 個 negatives，以及
+   uniform、popularity-aware、hard negatives，檢查低分是否主要來自容易的負樣本。
+5. **Deep-model multi-seed tuning：** 對 factors、layers、epochs、learning rate、sequence
+   length 做 validation grid，並至少使用五個 seeds，區分模型限制與 optimization failure。
+6. **固定 catalog 的 nested training-size curve：** 保持同一批 test users/items，只增加
+   training interactions，才能判斷更多資料是否真正改善 embedding models。
+
+綜合而言，最有力的解釋順序是：**資料的長尾稀疏分布與 discovery 任務定義是主要原因；
+缺少 metadata／即時 availability 加重冷啟動；模型 inductive bias 決定誰能有效利用現有
+訊號；新增 deep models 的有限調參則是仍需保留的不確定性。**
+
 完整模型設定記錄在 [`configs/full.yaml`](configs/full.yaml) 的 `advanced` 區段；執行後的
 Validation、Test 表格與具名推薦清單會寫入本機 `outputs/advanced/`。該目錄依專案規則
 不納入版本控制，以避免把大型衍生資料推送至 GitHub。
