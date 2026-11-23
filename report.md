@@ -513,6 +513,98 @@ candidate coverage，不能聲稱已解決 true cold start。
 與曝光，Count-weighted 或 time-decayed ItemKNN 更合適；對完全新使用者使用熱門度／
 context fallback；對完全新頻道則必須取得內容或即時 metadata，現有資料無法解決。**
 
+### 7.3 是否存在「特定使用者適合特定模型」的 latent segments？
+
+有。前面的 subgroup averages 顯示 Hybrid 在每個 history-length group 都是平均第一，
+但這不代表它對每一位使用者都是最好。將每位使用者所有 test days 的 NDCG 取平均，
+再找出唯一最高的模型後，得到：
+
+| 每位使用者的唯一最佳模型 | Users |
+|---|---:|
+| Time-decayed ItemKNN | 5,299 |
+| Count-weighted ItemKNN | 4,506 |
+| Hybrid | 3,004 |
+| BPR | 2,376 |
+| LightGCN | 1,655 |
+| ItemKNN | 1,517 |
+| Recent Popularity | 776 |
+| Popularity | 253 |
+| GRU4Rec | 16 |
+| LiveRec-like proxy | 12 |
+| Tie 或所有模型都未命中 | 33,798 |
+
+Hybrid 是 overall average 最佳，但 time-decayed 或 count-weighted ItemKNN 對更多使用者
+形成「唯一最佳」。兩者並不矛盾：Hybrid 對廣泛使用者提供穩定的小幅改善；另一模型
+可能只在某些人命中一個獨特 target，因而成為該人的 winner。33,798 位屬於 tie 或全部
+未命中，也顯示 Top-10 new-channel discovery 仍然非常困難。
+
+#### 可以在推薦當下觀察到的 winner profiles
+
+下表只使用 fit-period history features，不使用未來 target，因此可作為未來 model selector
+的候選訊號：
+
+| 唯一最佳模型 | History 中位數 | 重複觀看比例 | 歷史頻道平均熱門度 | History span（日） | 最近 7 日不同頻道數 |
+|---|---:|---:|---:|---:|---:|
+| Time-decayed ItemKNN | 16 | 0.42 | 1,294 | 28.83 | 7.01 |
+| Count-weighted ItemKNN | 15 | **0.44** | 1,180 | 28.67 | 6.73 |
+| Hybrid | 13 | 0.37 | 740 | 26.59 | 6.20 |
+| BPR | 11 | 0.38 | 1,175 | 26.06 | 5.53 |
+| LightGCN | 10 | 0.36 | **2,180** | 24.77 | 5.24 |
+| ItemKNN | 16 | 0.41 | 1,005 | 28.55 | **7.20** |
+| Recent Popularity | 17 | 0.41 | 1,587 | 28.19 | 7.14 |
+| Popularity | 12 | 0.38 | 1,632 | 26.59 | 6.42 |
+
+這些 profiles 與各模型的 training mechanism 有一致、值得繼續驗證的關係：
+
+- **Count-weighted ItemKNN winners 的重複觀看比例最高。** 模型刻意保留 interaction
+  counts，因此忠誠度／重複消費較高的使用者更可能受益。這是直接符合模型特徵表示的
+  evidence，而不只是隨機相關。
+- **Time-decayed ItemKNN winners 有較長 history span 與較多近期活動。** 當歷史同時
+  包含較舊與較新興趣時，降低舊互動權重比較有價值。
+- **LightGCN、Popularity winners 過去觀看的頻道較主流。** LightGCN winner 的歷史
+  頻道平均熱門度約 2,180，遠高於 Hybrid winner 的 740；這符合 graph propagation 與
+  popularity methods 在高連接度 nodes 上訊號較強的特性。
+- **Hybrid winners 的歷史頻道較不熱門且重複比例較低。** ItemKNN 的局部關係加上 BPR
+  的互補訊號，可能較適合興趣較分散、沒有單一重複模式的使用者。
+
+上述是 association，不是因果證明；例如某模型成為 winner 也會受未來 target 難度影響。
+尤其「未來 target popularity」只能用於事後診斷，不能拿來做線上 model routing，否則
+會造成 leakage。真正可部署的 selector 應只使用 history length、repeat ratio、歷史頻道
+熱門度、history span 與 recent activity。
+
+#### 真正零歷史 viewers：只能使用非個人化 fallback
+
+原主要 Test protocol 只包含 fit period 已知使用者。額外找出 test period 首次出現且
+完全沒有 fit history 的使用者後，有 1,369 位至少具有一個 fit-catalog-covered positive，
+形成 3,133 個 user/day cases。其 novel positives 的 candidate coverage 為 84.36%。
+
+| Zero-history fallback | Recall@10 | NDCG@10 | Hit Rate@10 |
+|---|---:|---:|---:|
+| Recent Popularity | **0.07095** | **0.05343** | **0.13597** |
+| Overall Popularity | 0.06888 | 0.05260 | 0.13150 |
+
+Recent Popularity 小幅勝出，因為它不需要 user embedding，且較符合 target period 的近期
+趨勢。ItemKNN 的 zero history vector 沒有 watched neighbors；BPR、LightGCN、SASRec、
+GRU4Rec 也沒有新使用者 representation，因此不能直接產生有意義的個人化分數。實際
+系統應在零歷史時明確切換到 Recent Popularity，而不是假裝 personalized model 有訊號。
+
+#### 值得驗證的下一步：validation-trained mixture of experts
+
+結果支持建立一個小型 gating model，而不是所有人固定使用同一 recommender：
+
+```text
+零歷史 → Recent Popularity
+高 repeat ratio → Count-weighted ItemKNN 候選權重提高
+長 history span、近期興趣明顯 → Time-decayed ItemKNN 權重提高
+主流頻道偏好高 → LightGCN／BPR／Popularity 訊號提高
+其餘已知使用者 → Hybrid 作為安全預設
+```
+
+不過 routing rules 不能從 Test winners 直接制定後再宣稱提升。正確做法是只用 Validation
+資料，以可觀察 history features 訓練 classifier 或 learning-to-rank gate，選擇模型或混合
+權重；規則凍結後再對 Test 評估。還應與簡單 Hybrid 比較 user-clustered bootstrap，確認
+mixture-of-experts 的改善不是過擬合 subgroup noise。
+
 完整模型設定記錄在 [`configs/full.yaml`](configs/full.yaml) 的 `advanced` 區段；執行後的
 Validation、Test 表格與具名推薦清單會寫入本機 `outputs/advanced/`。該目錄依專案規則
 不納入版本控制，以避免把大型衍生資料推送至 GitHub。
