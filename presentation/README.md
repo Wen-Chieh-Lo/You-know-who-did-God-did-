@@ -2,6 +2,9 @@
 
 Files:
 
+- `cse258_assignment2_20min_en.pptx`: the primary English CSE 258 recording deck.
+- `cse258_assignment2_speaker_notes_en.md`: timed English narration for every slide;
+  the notes are also embedded in the PowerPoint speaker-notes area.
 - `assignment2_20min_zh_tw.pptx`: 17-slide Traditional-Chinese presentation for an
   approximately 20-minute recording.
 - `assignment2_speaker_notes_zh_tw.md`: suggested timing and narration for every
@@ -15,6 +18,7 @@ To rebuild it:
 
 ```bash
 python -m pip install -e '.[presentation]'
+python scripts/build_assignment2_slides_en.py
 python scripts/build_assignment2_slides.py
 ```
 
