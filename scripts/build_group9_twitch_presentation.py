@@ -5,6 +5,9 @@ from __future__ import annotations
 from io import BytesIO
 from pathlib import Path
 
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 from PIL import Image
 from pptx import Presentation
 from pptx.dml.color import RGBColor
@@ -19,6 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / "Group_9_Presentation.pptx"
 OUT = ROOT / "presentation" / "Group_9_Presentation_Twitch.pptx"
 NOTES_OUT = ROOT / "presentation" / "Group_9_Presentation_Twitch_notes.md"
+MOTIVATION_FIGURE = ROOT / "outputs" / "figures" / "channel_ecdf_motivation.png"
 
 FONT = "Calibri"
 NAVY = RGBColor(0x12, 0x30, 0x47)
@@ -34,6 +38,47 @@ GRID = RGBColor(0xD6, 0xE0, 0xE6)
 WHITE = RGBColor(0xFF, 0xFF, 0xFF)
 
 SLIDE_NOTES: list[dict[str, str]] = []
+
+
+def build_motivation_figure() -> None:
+    """Render an interpretable ECDF line chart from the channel-count summary."""
+    thresholds = [1, 2, 5, 10, 20, 50, 100]
+    cumulative_share = [44.6, 60.1, 76.9, 86.1, 91.9, 96.0, 97.7]
+    figure, axis = plt.subplots(figsize=(7.2, 4.4))
+    figure.patch.set_facecolor("white")
+    axis.set_facecolor("white")
+    axis.plot(
+        thresholds, cumulative_share, color="#355D9B", linewidth=3,
+        marker="o", markersize=6, markerfacecolor="white", markeredgewidth=2,
+    )
+    axis.scatter([5], [76.9], s=95, color="#087D8B", zorder=4)
+    axis.axvline(5, color="#087D8B", linewidth=1.2, alpha=0.35)
+    for x, y, label in [(1, 44.6, "45%"), (2, 60.1, "60%"),
+                        (5, 76.9, "77%"), (10, 86.1, "86%")]:
+        axis.annotate(
+            label, (x, y), xytext=(0, 11), textcoords="offset points",
+            ha="center", color="#087D8B" if x == 5 else "#123047",
+            fontsize=11, fontweight="bold",
+        )
+    axis.set_xscale("log")
+    axis.set_xlim(0.85, 125)
+    axis.set_ylim(0, 105)
+    axis.set_xticks(thresholds, labels=[str(value) for value in thresholds])
+    axis.set_yticks([0, 20, 40, 60, 80, 100],
+                    labels=["0%", "20%", "40%", "60%", "80%", "100%"])
+    axis.set_xlabel("Maximum interactions per channel (log scale)", fontsize=11)
+    axis.set_ylabel("Share of channels", fontsize=11)
+    axis.set_title("Empirical cumulative distribution", loc="left",
+                   fontsize=13, fontweight="bold", color="#123047")
+    axis.grid(axis="y", color="#D6E0E6", linewidth=0.8)
+    axis.grid(axis="x", visible=False)
+    axis.spines[["top", "right"]].set_visible(False)
+    axis.spines[["left", "bottom"]].set_color("#718293")
+    axis.tick_params(colors="#566575", labelsize=10)
+    figure.tight_layout(pad=0.8)
+    MOTIVATION_FIGURE.parent.mkdir(parents=True, exist_ok=True)
+    figure.savefig(MOTIVATION_FIGURE, dpi=180, bbox_inches="tight")
+    plt.close(figure)
 
 
 def clear_template_slides(prs: Presentation) -> None:
@@ -217,33 +262,6 @@ def oval(slide, x: float, y: float, w: float, h: float, color: RGBColor,
     return shape
 
 
-def draw_catalog_icon(slide, x: float, y: float, color: RGBColor = TEAL) -> None:
-    for row in range(3):
-        for col in range(4):
-            rect(slide, x + col * 0.18, y + row * 0.18, 0.11, 0.11,
-                 color if (row + col) % 3 else BLUE)
-
-
-def draw_sparse_icon(slide, x: float, y: float, color: RGBColor = TEAL) -> None:
-    active = {(0, 1), (1, 3), (3, 0), (3, 4), (4, 2)}
-    for row in range(5):
-        for col in range(5):
-            fill = color if (row, col) in active else LIGHT
-            rect(slide, x + col * 0.14, y + row * 0.14, 0.095, 0.095,
-                 fill, line=GRID)
-
-
-def draw_clock_icon(slide, x: float, y: float, color: RGBColor = TEAL) -> None:
-    oval(slide, x, y, 0.68, 0.68, WHITE, line=color)
-    rect(slide, x + 0.32, y + 0.13, 0.035, 0.23, color)
-    shape = slide.shapes.add_shape(
-        MSO_AUTO_SHAPE_TYPE.RECTANGLE, Inches(x + 0.34), Inches(y + 0.33),
-        Inches(0.20), Inches(0.035)
-    )
-    shape.rotation = 25
-    shape.fill.solid(); shape.fill.fore_color.rgb = color; no_line(shape)
-
-
 def draw_history_icon(slide, x: float, y: float) -> None:
     oval(slide, x + 0.18, y, 0.34, 0.34, TEAL)
     oval(slide, x, y + 0.38, 0.70, 0.46, LIGHT, line=TEAL)
@@ -303,6 +321,7 @@ def flatten_presentation_effects(prs: Presentation) -> None:
 
 def build() -> None:
     OUT.parent.mkdir(parents=True, exist_ok=True)
+    build_motivation_figure()
     prs = Presentation(TEMPLATE)
     seal = template_seal(prs)
     clear_template_slides(prs)
@@ -334,45 +353,22 @@ def build() -> None:
     # 2 — Motivation
     slide = prs.slides.add_slide(blank)
     add_header(slide, "Motivation: 77% of Channels Have ≤5 Interactions", "", 2, seal)
-    text(slide, "Cumulative share of 162,625 channels", 0.72, 1.18, 4.75, 0.26,
-         size=13, color=GRAY, bold=True)
-    thresholds = [("≤ 1", 0.446, "45%"), ("≤ 2", 0.601, "60%"),
-                  ("≤ 5", 0.769, "77%"), ("≤ 10", 0.861, "86%")]
-    for index, (label, share, display) in enumerate(thresholds):
-        y = 1.62 + index * 0.66
-        text(slide, label, 0.72, y + 0.03, 0.55, 0.24,
-             size=12.5, color=NAVY, bold=True, align=PP_ALIGN.RIGHT)
-        rect(slide, 1.42, y, 3.92, 0.34, LIGHT)
-        rect(slide, 1.42, y, 3.92 * share, 0.34,
-             TEAL if label == "≤ 5" else BLUE)
-        text(slide, display, 5.48, y + 0.02, 0.55, 0.25,
-             size=13, color=TEAL if label == "≤ 5" else NAVY, bold=True)
-    rect(slide, 0.72, 4.35, 5.30, 0.52, LIGHT, line=GRID)
-    text(slide, "Top 1% of channels", 0.92, 4.49, 1.65, 0.22,
-         size=12.5, color=NAVY, bold=True)
-    text(slide, "receive 60% of all interactions", 2.60, 4.49, 3.10, 0.22,
-         size=12.5, color=TEAL, bold=True)
+    picture_fit(slide, MOTIVATION_FIGURE, 0.48, 1.18, 5.70, 3.78)
 
-    rect(slide, 6.28, 1.20, 0.035, 3.66, GRID)
-    draw_sparse_icon(slide, 6.66, 1.42)
-    text(slide, "Sparse evidence", 7.58, 1.36, 1.72, 0.26,
-         size=11.5, color=NAVY, bold=True)
-    text(slide, "unstable tail representations", 7.58, 1.68, 1.72, 0.38,
-         size=11, color=GRAY)
-    draw_clock_icon(slide, 6.69, 2.46)
-    text(slide, "Ambiguous negatives", 7.58, 2.40, 1.72, 0.26,
-         size=11.5, color=NAVY, bold=True)
-    text(slide, "no view does not imply dislike", 7.58, 2.72, 1.72, 0.38,
-         size=11, color=GRAY)
-    draw_catalog_icon(slide, 6.69, 3.54)
-    text(slide, "Concentrated demand", 7.58, 3.46, 1.72, 0.26,
-         size=11.5, color=NAVY, bold=True)
-    text(slide, "discovery favors established channels", 7.58, 3.78, 1.72, 0.46,
-         size=11, color=GRAY)
-    text(slide, "Motivation", 6.67, 4.53, 0.88, 0.22,
-         size=10.5, color=TEAL, bold=True)
-    text(slide, "Rank channels with little history.",
-         7.52, 4.49, 1.83, 0.40, size=11.5, color=NAVY, bold=True)
+    conclusion_cards = [
+        ("Extreme item sparsity", "77% of channels have five or fewer interactions", TEAL),
+        ("Concentrated attention", "The top 1% receives 60% of all interactions", BLUE),
+        ("Ambiguous negatives", "A missing view may mean offline—not disliked", ORANGE),
+        ("Modeling consequence", "Tail-channel representations receive weak evidence", GREEN),
+    ]
+    for index, (heading, body, color) in enumerate(conclusion_cards):
+        y = 1.22 + index * 0.92
+        rect(slide, 6.42, y, 2.94, 0.76, WHITE, line=GRID)
+        rect(slide, 6.42, y, 0.065, 0.76, color)
+        text(slide, heading, 6.64, y + 0.10, 2.50, 0.22,
+             size=11.5, color=NAVY, bold=True)
+        text(slide, body, 6.64, y + 0.38, 2.50, 0.28,
+             size=10.2, color=GRAY)
     text(slide, "Source: UCSD Twitch dataset; channel-level interaction counts.",
          0.72, 5.05, 5.40, 0.18, size=8.5, color=MID)
     add_notes(slide, "Motivation", "0:30–1:25 (55 sec)",
@@ -380,8 +376,8 @@ def build() -> None:
               "hundred sixty-two thousand channels, yet the average viewer has only about thirty interactions. "
               "Almost forty-five percent of channels appear only once, sixty percent have at most two interactions, "
               "and seventy-seven percent have at most five. At the other extreme, the top one percent of channels "
-              "receive sixty percent of all interactions. The chart now reports interpretable cumulative shares rather "
-              "than an unlabeled rank curve. This concentration leaves weak item evidence, while live availability "
+              "receive sixty percent of all interactions. The empirical cumulative distribution makes these thresholds "
+              "explicit rather than asking the audience to interpret a popularity-rank curve. This concentration leaves weak item evidence, while live availability "
               "makes missing views ambiguous. The motivation is to learn useful discovery rankings despite these limits.")
 
     # 3 — Objective
