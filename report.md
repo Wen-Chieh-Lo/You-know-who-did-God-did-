@@ -421,6 +421,81 @@ LightGCN 在所有設定下都一定不適合」。
 缺少 metadata／即時 availability 加重冷啟動；模型 inductive bias 決定誰能有效利用現有
 訊號；新增 deep models 的有限調參則是仍需保留的不確定性。**
 
+### 7.2 哪個模型對 cold viewers 或 cold channels 最好？
+
+「Cold」需要分成三種不同情況，否則容易得到互相矛盾的結論：
+
+1. **Cold viewer：** 使用者存在於 fit period，但歷史很短。
+2. **Cold channel：** 頻道存在於 fit catalog，但只有很少訓練期觀眾。
+3. **True cold start channel：** 頻道在 fit period 完全沒有出現。
+
+#### Cold viewers：Hybrid 仍然最好
+
+本分析將 test users 依 fit-period distinct watched channels 分為四組；最冷的一組包含
+14,782 位只看過約 1–6 個頻道的使用者。這些人不是完全新使用者，模型仍有少量歷史
+可以個人化。
+
+| 模型 | Cold-viewer Recall@10 | Cold-viewer NDCG@10 | Hit Rate@10 |
+|---|---:|---:|---:|
+| Hybrid | **0.27922** | **0.16794** | **0.32592** |
+| ItemKNN | 0.26435 | 0.15811 | 0.30813 |
+| Time-decayed ItemKNN | 0.24120 | 0.14447 | 0.28071 |
+| Count-weighted ItemKNN | 0.23982 | 0.14366 | 0.27861 |
+| LightGCN | 0.14838 | 0.08910 | 0.18313 |
+| BPR | 0.14120 | 0.08635 | 0.17375 |
+| Popularity | 0.09249 | 0.05937 | 0.11752 |
+| GRU4Rec | 0.02138 | 0.01320 | 0.02768 |
+| LiveRec-like proxy | 0.00301 | 0.00131 | 0.00385 |
+| SASRec | 0.00111 | 0.00051 | 0.00140 |
+
+Hybrid 在 cold viewers 上仍勝過 ItemKNN，表示即使只有幾個觀看頻道，局部 co-view
+signal 加上 BPR 的補充訊號仍可建立有效個人化。Popularity 對 cold viewers 比對全體
+使用者稍強，因為歷史太短時全域熱門度是一個合理 fallback；但它仍明顯輸給個人化模型。
+
+真正零歷史的新使用者不在這個 test protocol 中。對這種 user cold start，ItemKNN、
+BPR、LightGCN 和 sequence models 都沒有個人訊號，實際系統需要 popularity、context、
+onboarding preferences 或 demographic/session features 作 fallback。
+
+#### Cold channels：Count-weighted 與 time-decayed ItemKNN 更好
+
+將 catalog-covered test positives 依 fit-period distinct-viewer popularity 分成四組後，
+最冷 quartile 包含 38,320 個 positives、20,214 個不同頻道。此處的 recall 是每個
+positive user-channel pair 是否出現在該使用者 Top-10 中。
+
+| 模型 | Least-popular channel recall |
+|---|---:|
+| Count-weighted ItemKNN | **0.04426** |
+| Time-decayed ItemKNN | 0.04089 |
+| ItemKNN | 0.03987 |
+| Hybrid | 0.03278 |
+| LightGCN | 0.00050 |
+| BPR | 0.00023 |
+| LiveRec-like proxy | 0.00005 |
+| GRU4Rec | 0.00003 |
+| Popularity／Recent Popularity／SASRec | 0 |
+
+這裡的 winner 與整體結果不同。Count-weighted ItemKNN 雖然整體 NDCG 低於 Hybrid，
+卻最能命中冷門 targets；time-decayed ItemKNN 也勝過普通 ItemKNN。原因是這些方法的
+catalog coverage 與 long-tail exposure 較高，願意把 Top-10 slots 分配給更多低熱門度
+頻道。Hybrid 為了提高整體 NDCG，推薦結果較集中，因此犧牲了一部分 cold-channel
+recall。
+
+LightGCN 與 BPR 對 cold channels 幾乎沒有幫助，支持 embedding models 在極稀疏 items
+上 representation 不足的診斷。Popularity 對最冷 quartile 為零則是其設計的直接結果：
+固定 Top-10 都被最熱門頻道佔據。
+
+#### True channel cold start：目前所有模型都無法解決
+
+約 12% 的 test-period novel positives 不在 fit catalog。因為目前模型只使用 interaction
+IDs，這些頻道沒有 ItemKNN neighbors、BPR/LightGCN embeddings 或 sequence item
+embeddings，所以無法進入候選排序。這不是某一個模型排名較差，而是 candidate
+generation 的結構性限制。固定資料又沒有足夠 metadata，因此本專案最多只能清楚回報
+candidate coverage，不能聲稱已解決 true cold start。
+
+總結來說：**對短歷史 cold viewers 選 Hybrid；若產品目標是增加冷門但已知頻道的命中
+與曝光，Count-weighted 或 time-decayed ItemKNN 更合適；對完全新使用者使用熱門度／
+context fallback；對完全新頻道則必須取得內容或即時 metadata，現有資料無法解決。**
+
 完整模型設定記錄在 [`configs/full.yaml`](configs/full.yaml) 的 `advanced` 區段；執行後的
 Validation、Test 表格與具名推薦清單會寫入本機 `outputs/advanced/`。該目錄依專案規則
 不納入版本控制，以避免把大型衍生資料推送至 GitHub。
