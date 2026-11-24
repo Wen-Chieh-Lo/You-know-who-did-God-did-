@@ -322,7 +322,7 @@ def build() -> None:
          "Personalized discovery from highly sparse implicit feedback",
          1.15, 2.36, 7.70, 0.36, size=17, color=GRAY,
          align=PP_ALIGN.CENTER)
-    text(slide, "Wen-Chieh Lo · Bing-You Yu", 2.20, 3.32, 5.60, 0.30,
+    text(slide, "Wen-Chieh Lo · Cheng-Yi Chen · Cheng-Yan Juang", 2.20, 3.32, 5.60, 0.30,
          size=15, color=NAVY, bold=True, align=PP_ALIGN.CENTER)
     text(slide, "CSE 258 · Fall 2026", 2.20, 3.72, 5.60, 0.26,
          size=12.5, color=MID, align=PP_ALIGN.CENTER)
