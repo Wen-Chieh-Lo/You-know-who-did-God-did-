@@ -22,6 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / "Group_9_Presentation.pptx"
 OUT = ROOT / "presentation" / "Group_9_Presentation_Twitch.pptx"
 NOTES_OUT = ROOT / "presentation" / "Group_9_Presentation_Twitch_notes.md"
+TRANSCRIPT_OUT = ROOT / "presentation" / "Group_9_Presentation_Twitch_transcript.md"
 MOTIVATION_FIGURE = ROOT / "outputs" / "figures" / "channel_ecdf_motivation.png"
 
 FONT = "Calibri"
@@ -1026,8 +1027,45 @@ def build() -> None:
             item["note"], "",
         ])
     NOTES_OUT.write_text("\n".join(lines), encoding="utf-8")
+
+    transcript_word_count = sum(
+        len(item["note"].split()) for item in SLIDE_NOTES
+    )
+    transcript_lines = [
+        "# Twitch New-Channel Recommendation",
+        "",
+        "## Recording transcript",
+        "",
+        "> **Speakers:** Wen-Chieh Lo, Cheng-Yi Chen, and Cheng-Yan Juang  ",
+        "> **Course:** CSE 258 · Fall 2026  ",
+        "> **Planned duration:** 20 minutes  ",
+        f"> **Transcript length:** {transcript_word_count:,} words",
+        "",
+        "## Slide guide",
+        "",
+        "| Slide | Topic | Planned timing |",
+        "| ---: | --- | --- |",
+    ]
+    for index, item in enumerate(SLIDE_NOTES, 1):
+        transcript_lines.append(
+            f"| {index} | {item['title']} | {item['timing']} |"
+        )
+    transcript_lines.extend(["", "---", ""])
+    for index, item in enumerate(SLIDE_NOTES, 1):
+        transcript_lines.extend([
+            f"## Slide {index} — {item['title']}",
+            "",
+            f"**Planned timing:** {item['timing']}",
+            "",
+            item["note"],
+            "",
+            "---",
+            "",
+        ])
+    TRANSCRIPT_OUT.write_text("\n".join(transcript_lines), encoding="utf-8")
     print(f"Wrote {OUT}")
     print(f"Wrote {NOTES_OUT}")
+    print(f"Wrote {TRANSCRIPT_OUT}")
 
 
 if __name__ == "__main__":
