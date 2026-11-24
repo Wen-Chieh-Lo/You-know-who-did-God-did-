@@ -310,25 +310,45 @@ def build() -> None:
 
     # 1 — Title
     slide = prs.slides.add_slide(blank)
-    text(slide, "Twitch New-Channel Recommendation", 0.72, 1.36, 8.56, 0.78,
-         size=31, color=NAVY, bold=True, align=PP_ALIGN.CENTER)
-    rect(slide, 1.55, 2.31, 6.90, 0.055, TEAL)
+    text(slide, "Twitch New-Channel Recommendation", 0.72, 0.86, 8.56, 0.48,
+         size=26, color=NAVY, bold=True, align=PP_ALIGN.CENTER)
+    rect(slide, 1.55, 1.54, 6.90, 0.055, TEAL)
     text(slide,
-         "Ranking unseen channels from highly sparse implicit feedback",
-         1.15, 2.60, 7.70, 0.46, size=19, color=GRAY,
+         "Personalized discovery from highly sparse implicit feedback",
+         1.15, 1.78, 7.70, 0.32, size=16, color=GRAY,
          align=PP_ALIGN.CENTER)
-    text(slide, "Wen-Chieh Lo · Bing-You Yu", 2.20, 3.35, 5.60, 0.34,
-         size=16, color=NAVY, bold=True, align=PP_ALIGN.CENTER)
-    text(slide, "CSE 258 · Fall 2026", 2.20, 3.78, 5.60, 0.30,
-         size=13.5, color=MID, align=PP_ALIGN.CENTER)
+
+    rect(slide, 1.32, 2.30, 7.36, 1.02, LIGHT, line=GRID)
+    text(slide, "OUR DIFFERENCE", 1.55, 2.49, 1.35, 0.20,
+         size=10, color=TEAL, bold=True)
+    text(slide, "Recommend new channels, not repeats",
+         2.90, 2.47, 5.48, 0.26, size=15, color=NAVY, bold=True,
+         align=PP_ALIGN.CENTER)
+    text(slide, "New channel = absent from that viewer's observed history",
+         2.90, 2.84, 5.48, 0.22, size=11.8, color=GRAY,
+         align=PP_ALIGN.CENTER)
+    text(slide, "User-specific novelty; the channel itself need not be newly created.",
+         2.90, 3.08, 5.48, 0.18, size=9.2, color=MID,
+         align=PP_ALIGN.CENTER)
+
+    text(slide, "WHY IT FITS", 1.76, 3.67, 1.20, 0.20,
+         size=10, color=TEAL, bold=True)
+    text(slide, "Recommendation makes a vast catalog personally discoverable.",
+         2.92, 3.62, 5.52, 0.26, size=12.5, color=NAVY, bold=True,
+         align=PP_ALIGN.CENTER)
+    text(slide, "Wen-Chieh Lo · Bing-You Yu", 2.20, 4.20, 5.60, 0.28,
+         size=14, color=NAVY, bold=True, align=PP_ALIGN.CENTER)
+    text(slide, "CSE 258 · Fall 2026", 2.20, 4.55, 5.60, 0.24,
+         size=11.5, color=MID, align=PP_ALIGN.CENTER)
     slide.shapes.add_picture(BytesIO(seal), Inches(8.72), Inches(0.25),
                              Inches(0.78), Inches(0.78))
     add_footer(slide, 1)
     add_notes(slide, "Twitch New-Channel Recommendation", "0:00–0:30 (30 sec)",
-              "This project studies new-channel recommendation on Twitch. Rather than "
-              "predicting repeat viewing, we rank channels that a viewer has never watched "
-              "before and ask whether those channels are discovered in the future. The main "
-              "question is which modeling assumptions work under extremely sparse implicit feedback.")
+              "This project differs from repeat-view recommendation: we recommend channels that are new to the "
+              "viewer. A new channel is not necessarily newly created; it is absent from that viewer's observed "
+              "history. We rank these unseen channels and evaluate whether they receive a future first-time view. "
+              "Recommendation is a natural fit because viewers cannot manually explore an immense catalog, and the "
+              "system should support personalized discovery rather than only reinforce repeat consumption.")
 
     # 2 — Motivation
     slide = prs.slides.add_slide(blank)

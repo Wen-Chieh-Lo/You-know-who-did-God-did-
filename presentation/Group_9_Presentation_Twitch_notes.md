@@ -8,7 +8,7 @@ The planned narration totals 20 minutes.
 
 Timing: 0:00–0:30 (30 sec)
 
-This project studies new-channel recommendation on Twitch. Rather than predicting repeat viewing, we rank channels that a viewer has never watched before and ask whether those channels are discovered in the future. The main question is which modeling assumptions work under extremely sparse implicit feedback.
+This project differs from repeat-view recommendation: we recommend channels that are new to the viewer. A new channel is not necessarily newly created; it is absent from that viewer's observed history. We rank these unseen channels and evaluate whether they receive a future first-time view. Recommendation is a natural fit because viewers cannot manually explore an immense catalog, and the system should support personalized discovery rather than only reinforce repeat consumption.
 
 ## 2. Motivation
 
