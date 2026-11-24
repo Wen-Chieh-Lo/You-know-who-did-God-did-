@@ -32,7 +32,7 @@ The complete Twitch source contains over fifteen point five million users, nearl
 
 Timing: 3:25–4:45 (80 sec)
 
-The first thirty days fit candidate models, the next six select hyperparameters, and the final seven form the held-out test. After selection, the models are refit through day thirty-five. Each user is ranked against the full fit catalog after removing channels already watched. Every mapping and statistic uses only past data. Because users contribute multiple daily cases, the paired bootstrap resamples users and keeps all cases belonging to each sampled user.
+Read this slide from the past toward the simulated future. Days zero through twenty-nine train the candidate models. Days thirty through thirty-five choose hyperparameters without looking at the test. After selection, we refit the chosen model on all data through day thirty-five. Days thirty-six through forty-two are then used once as the held-out future. For each user-day case, we use only earlier viewing history, remove channels the viewer has already watched, rank the remaining fit-catalog channels, and ask whether a future first-time view appears in the Top-10. All mappings, popularity statistics, similarities, and embeddings are built from past data only. The test contains fifty-three thousand two hundred twelve users and one hundred four thousand eight hundred eighteen cases. Because one viewer can contribute several days, the bootstrap resamples whole users rather than treating their days as independent.
 
 ## 6. Compared Models
 

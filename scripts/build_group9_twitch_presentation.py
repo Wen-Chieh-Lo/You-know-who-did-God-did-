@@ -456,36 +456,70 @@ def build() -> None:
     slide = prs.slides.add_slide(blank)
     add_header(slide, "Experimental Protocol",
                "Model selection is chronological; the test set is used exactly once.", 5, seal)
-    stages = [
-        (0.58, "History", "Binary views\ndays 0–29"),
-        (2.46, "Validation", "Select settings\ndays 30–35"),
-        (4.34, "Refit", "Train + validation\nthrough day 35"),
-        (6.22, "Rank", "Full fit catalog\nexclude seen items"),
-        (8.10, "Test", "Novel positives\ndays 36–42"),
+    text(slide, "Chronological split", 0.72, 1.08, 2.10, 0.24,
+         size=13, color=NAVY, bold=True)
+    text(slide, "Past data must remain earlier than the simulated future.",
+         2.56, 1.10, 4.90, 0.20, size=10.5, color=GRAY)
+    split_stages = [
+        (0.72, "TRAIN", "Days 0–29", "Learn user–channel patterns", NAVY),
+        (3.67, "VALIDATE", "Days 30–35", "Choose settings without test data", BLUE),
+        (6.62, "TEST", "Days 36–42", "Evaluate future discoveries once", TEAL),
     ]
-    for i, (x, heading, body) in enumerate(stages):
-        rect(slide, x, 1.62, 1.32, 0.46, NAVY)
-        text(slide, heading, x, 1.72, 1.32, 0.24, size=12.5, color=WHITE,
-             bold=True, align=PP_ALIGN.CENTER)
-        text(slide, body, x - 0.08, 2.28, 1.48, 0.62, size=11.5, color=GRAY,
-             align=PP_ALIGN.CENTER)
-        if i < len(stages) - 1:
-            add_process_arrow(slide, x + 1.45, 1.70)
-    rect(slide, 0.72, 3.28, 8.62, 0.035, GRID)
-    text(slide, "Validity checks", 0.72, 3.62, 1.45, 0.28,
-         size=14.5, color=NAVY, bold=True)
-    bullets(slide, [
-        "Mappings, popularity statistics, similarities, and embeddings use fit-period data only",
-        "53,212 eligible users and 104,818 user-day cases in the primary held-out test",
-        "10,000 user-clustered paired bootstrap draws with Holm correction",
-    ], 2.20, 3.51, 7.10, 1.18, size=12.5, space_after=4)
+    for index, (x, heading, days, purpose, color) in enumerate(split_stages):
+        rect(slide, x, 1.42, 2.64, 1.08, WHITE, line=GRID)
+        rect(slide, x, 1.42, 2.64, 0.34, color)
+        text(slide, heading, x, 1.50, 2.64, 0.18,
+             size=11, color=WHITE, bold=True, align=PP_ALIGN.CENTER)
+        text(slide, days, x + 0.18, 1.89, 2.28, 0.24,
+             size=15, color=NAVY, bold=True, align=PP_ALIGN.CENTER)
+        text(slide, purpose, x + 0.18, 2.19, 2.28, 0.22,
+             size=10.2, color=GRAY, align=PP_ALIGN.CENTER)
+        if index < len(split_stages) - 1:
+            add_process_arrow(slide, x + 2.70, 1.80)
+
+    rect(slide, 2.02, 2.66, 5.96, 0.43, LIGHT, line=GRID)
+    text(slide, "AFTER TUNING", 2.20, 2.80, 1.10, 0.16,
+         size=9, color=TEAL, bold=True)
+    text(slide, "Refit the selected model on days 0–35, then test once.",
+         3.30, 2.70, 4.42, 0.34, size=10.2, color=NAVY, bold=True,
+         align=PP_ALIGN.CENTER, valign=MSO_ANCHOR.MIDDLE)
+
+    text(slide, "How one test recommendation is scored", 0.72, 3.22, 5.10, 0.24,
+         size=13, color=NAVY, bold=True)
+    test_steps = [
+        (0.72, "1  HISTORY", "Use views observed before the target day"),
+        (2.91, "2  FILTER", "Remove channels the viewer already watched"),
+        (5.10, "3  RANK", "Score the remaining fit-catalog channels"),
+        (7.29, "4  CHECK", "Did a future first-time view enter Top-10?"),
+    ]
+    for x, heading, body in test_steps:
+        rect(slide, x, 3.57, 1.90, 0.82, WHITE, line=GRID)
+        text(slide, heading, x + 0.10, 3.69, 1.70, 0.18,
+             size=10, color=TEAL, bold=True, align=PP_ALIGN.CENTER)
+        text(slide, body, x + 0.12, 3.96, 1.66, 0.32,
+             size=9.5, color=GRAY, align=PP_ALIGN.CENTER)
+
+    rect(slide, 0.72, 4.65, 8.62, 0.43, LIGHT, line=GRID)
+    safeguards = [
+        (0.86, "NO LEAKAGE", "past-only features"),
+        (3.52, "TEST SET", "53,212 users · 104,818 cases"),
+        (6.58, "BOOTSTRAP", "10,000 draws · resample users"),
+    ]
+    for x, heading, body in safeguards:
+        text(slide, heading, x, 4.77, 1.02, 0.16,
+             size=8.8, color=TEAL, bold=True)
+        text(slide, body, x + 1.00, 4.74, 1.82, 0.20,
+             size=8.7, color=NAVY, bold=True)
     add_notes(slide, "Experimental Protocol", "3:25–4:45 (80 sec)",
-              "The first thirty days fit candidate models, the next six select hyperparameters, "
-              "and the final seven form the held-out test. After selection, the models are refit "
-              "through day thirty-five. Each user is ranked against the full fit catalog after "
-              "removing channels already watched. Every mapping and statistic uses only past data. "
-              "Because users contribute multiple daily cases, the paired bootstrap resamples users "
-              "and keeps all cases belonging to each sampled user.")
+              "Read this slide from the past toward the simulated future. Days zero through twenty-nine train the "
+              "candidate models. Days thirty through thirty-five choose hyperparameters without looking at the test. "
+              "After selection, we refit the chosen model on all data through day thirty-five. Days thirty-six through "
+              "forty-two are then used once as the held-out future. For each user-day case, we use only earlier viewing "
+              "history, remove channels the viewer has already watched, rank the remaining fit-catalog channels, and "
+              "ask whether a future first-time view appears in the Top-10. All mappings, popularity statistics, "
+              "similarities, and embeddings are built from past data only. The test contains fifty-three thousand two "
+              "hundred twelve users and one hundred four thousand eight hundred eighteen cases. Because one viewer can "
+              "contribute several days, the bootstrap resamples whole users rather than treating their days as independent.")
 
     # 6 — Models
     slide = prs.slides.add_slide(blank)
