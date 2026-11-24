@@ -325,10 +325,10 @@ def build() -> None:
                              Inches(0.78), Inches(0.78))
     add_footer(slide, 1)
     add_notes(slide, "Twitch New-Channel Recommendation", "0:00–0:30 (30 sec)",
-              "This project differs from repeat-view recommendation: we rank channels that are new to each viewer "
-              "and evaluate whether they receive a future first-time view.\n"
-              "Here, new means absent from that viewer's observed history—not newly created—and recommendation is a "
-              "natural fit for personalized discovery in a catalog too large to explore manually.")
+              "Let me start with what we mean by new-channel recommendation. We are not trying to bring a viewer back "
+              "to a channel they already know; we are trying to predict the next channel they will discover. Here, new "
+              "means absent from that viewer's history, not newly created, which makes this a natural recommendation "
+              "problem in a catalog far too large to explore manually.")
 
     # 2 — Motivation
     slide = prs.slides.add_slide(blank)
@@ -352,14 +352,12 @@ def build() -> None:
     text(slide, "Source: UCSD Twitch dataset; channel-level interaction counts.",
          0.72, 5.05, 5.40, 0.18, size=8.5, color=MID)
     add_notes(slide, "Motivation", "0:30–1:25 (55 sec)",
-              "Twitch is a difficult discovery setting: the benchmark contains more than 162,000 channels, while an "
-              "average viewer contributes only about thirty interactions.\n"
-              "The curve shows extreme item sparsity: 45 percent of channels appear once, 60 percent at most twice, "
-              "and 77 percent at most five times.\n"
-              "Attention is also concentrated, with the top one percent receiving 60 percent of interactions, so "
-              "global popularity is a strong baseline that personalization must beat.\n"
-              "Finally, a missing view is ambiguous because a channel may have been offline, making unseen-channel "
-              "discovery harder than ordinary supervised classification.")
+              "The challenge becomes clear when we look at the data. We have more than 162,000 channels, but an average "
+              "viewer gives us only about thirty interactions. The curve shows how severe that imbalance is: 45 percent "
+              "of channels appear once, and 77 percent appear no more than five times. At the same time, the top one "
+              "percent receives 60 percent of all attention. That makes popularity a strong baseline, because a model "
+              "should prove it can do more than recommend the obvious head channels. And on a live platform, no view does "
+              "not necessarily mean dislike—the channel may simply have been offline.")
 
     # 3 — Objective
     slide = prs.slides.add_slide(blank)
@@ -397,12 +395,11 @@ def build() -> None:
          2.92, 4.50, 5.55, 0.22, size=12, color=NAVY, bold=True,
          align=PP_ALIGN.CENTER)
     add_notes(slide, "Research Objective", "1:25–2:10 (45 sec)",
-              "Our central question is whether past implicit viewing history can predict which unseen Twitch channels "
-              "a viewer will discover next.\n"
-              "We first compare ranking quality, then explain method differences through BPR diagnostics, feature "
-              "ablations, and user and channel subgroup analysis.\n"
-              "Finally, we test robustness across time and user scale, always using future first-time channel views in "
-              "a chronological holdout as the prediction target.")
+              "So the research question is straightforward: can past viewing history tell us which unseen channel a "
+              "viewer will discover next? We answer that in three layers. We compare the ranking quality of several "
+              "models, we investigate why their performance differs instead of stopping at a leaderboard, and we test "
+              "whether the same conclusions survive changes in time and dataset scale. Throughout the study, success "
+              "means predicting a future first-time channel view in a chronological holdout.")
 
     # 4 — Dataset overview
     slide = prs.slides.add_slide(blank)
@@ -420,16 +417,13 @@ def build() -> None:
     text(slide, "Source: UCSD Twitch dataset; Rappaz, McAuley, and Aberer, RecSys 2021.",
          0.86, 5.02, 5.80, 0.18, size=8.8, color=MID)
     add_notes(slide, "Dataset Overview", "2:10–3:25 (75 sec)",
-              "The complete Twitch source contains 15.5 million users, 474.7 million viewing interactions, and about "
-              "790,000 channel identifiers across forty-three relative days.\n"
-              "Our primary experiment uses the official 100,000-user benchmark, with 3.05 million interactions and "
-              "162,625 channels over the same time span.\n"
-              "The observations are viewing sessions rather than ratings, so a recorded view is positive implicit "
-              "feedback and an unrecorded view is not an explicit dislike.\n"
-              "Only user, stream, channel, start, and stop fields are available; there are no channel class or category "
-              "labels for grouping items or building content features.\n"
-              "Consequently, the models must learn from interaction structure, while the later scalability experiment "
-              "uses separate cohorts drawn from the complete source.")
+              "The full Twitch source is very large—15.5 million users and almost 475 million viewing interactions over "
+              "forty-three relative days. For the main experiment, we use the official 100,000-user benchmark, which still "
+              "contains more than three million interactions and 162,625 channels. What matters here is not only the size, "
+              "but also what the data does not contain. These are viewing sessions, not ratings, so an unrecorded view is "
+              "not an explicit negative. We also have only identifiers and time fields, with no game, language, or channel "
+              "category. That means we cannot group channels by class or build a content-based recommender; the models have "
+              "to learn almost entirely from the interaction structure.")
 
     # 5 — Task and protocol
     slide = prs.slides.add_slide(blank)
@@ -490,16 +484,13 @@ def build() -> None:
         text(slide, body, x + 1.00, 4.74, 1.82, 0.20,
              size=8.7, color=NAVY, bold=True)
     add_notes(slide, "Experimental Protocol", "3:25–4:45 (80 sec)",
-              "Read the protocol from past to future: days 0–29 train candidate models, and days 30–35 choose settings "
-              "without looking at the held-out test.\n"
-              "After validation, we refit the selected model on all observations through day 35, then evaluate exactly "
-              "once on days 36–42.\n"
-              "For each user-day case, we use earlier history, remove already-watched channels, rank the remaining fit "
-              "catalog, and check whether a future first-time view enters the Top-10.\n"
-              "Every mapping, popularity statistic, similarity, and embedding uses past data only, preventing future "
-              "information from leaking into training or candidate generation.\n"
-              "The test covers 53,212 users and 104,818 cases; because users contribute multiple days, uncertainty is "
-              "estimated with 10,000 bootstrap draws that resample whole users.")
+              "Here is how we make the evaluation behave like a real recommendation decision. We move strictly from past "
+              "to future: days zero through twenty-nine train the models, and the next six days choose the settings without "
+              "touching the test set. Once the settings are fixed, we refit on everything through day thirty-five and use "
+              "days thirty-six through forty-two exactly once. For each user-day, we look only at earlier history, remove "
+              "channels the viewer already knows, rank the remaining catalog, and ask whether a future first-time view "
+              "appears in the Top-10. All statistics are built from past data, and because one viewer can contribute several "
+              "days, the bootstrap resamples entire users rather than pretending those cases are independent.")
 
     # 6 — Models
     slide = prs.slides.add_slide(blank)
@@ -524,18 +515,14 @@ def build() -> None:
     text(slide, "BPR: Rendle et al., UAI 2009.", 0.92, 5.08, 2.60, 0.16,
          size=8.5, color=MID)
     add_notes(slide, "Compared Models", "4:45–6:15 (90 sec)",
-              "Popularity and recent popularity are non-personalized baselines: they test whether user history adds "
-              "value beyond recommending channels that are globally or recently popular.\n"
-              "ItemKNN represents each watched channel by its co-viewers and recommends neighboring channels with high "
-              "cosine similarity, preserving local co-view structure.\n"
-              "BPR instead learns latent user and item factors by training observed channels to score above sampled "
-              "unobserved channels.\n"
-              "Count-weighted ItemKNN tests whether repeated views carry useful extra signal, while binary ItemKNN treats "
-              "one view and many views identically.\n"
-              "The hybrid standardizes BPR and ItemKNN scores for each user before combining them, so neither score scale "
-              "automatically dominates.\n"
-              "A popularity penalty is also searched as a diversity control, allowing validation to decide whether less "
-              "popular candidates should receive an explicit boost.")
+              "The model comparison is designed to move from the simplest explanation to more personalized ones. "
+              "Popularity and recent popularity tell us how far we can get by recommending what everyone already watches. "
+              "ItemKNN then asks a local question: given the channels this viewer knows, which other channels share the "
+              "same audience? BPR takes a more global approach by learning latent user and item factors from pairwise "
+              "preferences. We also compare binary and count-weighted ItemKNN to see whether repeated viewing helps or just "
+              "reinforces familiar channels. Finally, the hybrid combines standardized ItemKNN and BPR scores, with an "
+              "optional popularity penalty, so validation can decide whether their different signals are genuinely "
+              "complementary.")
 
     # 7 — Implementation and tuning
     slide = prs.slides.add_slide(blank)
@@ -559,16 +546,13 @@ def build() -> None:
     text(slide, "Sparse blocks · top-200 neighbors · seed 258",
          7.47, 4.48, 1.96, 0.26, size=10.5, color=NAVY, bold=True)
     add_notes(slide, "Model Selection", "6:15–7:30 (75 sec)",
-              "All settings are chosen on validation data before the final test, so the reported test results do not "
-              "select their own hyperparameters.\n"
-              "For ItemKNN, validation compares 50, 100, and 200 neighbors and selects 200, retaining more useful local "
-              "co-view connections.\n"
-              "For BPR, the search covers factor dimension, regularization, and training epochs; the selected run uses 64 "
-              "factors, learning rate 0.03, and twenty epochs.\n"
-              "The hybrid search selects alpha 0.75 and no popularity penalty, meaning ItemKNN receives most of the weight "
-              "while BPR contributes a smaller complementary signal.\n"
-              "Sparse block multiplication and top-neighbor pruning avoid constructing the dense 162,000-by-162,000 "
-              "similarity matrix, making the experiment computationally feasible.")
+              "Before looking at the test results, we use validation data to make every modeling choice. ItemKNN performs "
+              "best with 200 neighbors, which suggests that a fairly broad local co-view neighborhood is useful. For BPR, "
+              "the selected configuration uses 64 factors, a learning rate of 0.03, and twenty epochs. The curve on the "
+              "left shows that the hybrid is strongest when ItemKNN carries most of the weight: validation chooses alpha "
+              "0.75 and no popularity penalty. There is also an engineering constraint behind this experiment. A dense "
+              "162,000-by-162,000 similarity matrix is not practical, so we multiply sparse blocks and retain only the best "
+              "neighbors for each channel.")
 
     # 8 — Metrics
     slide = prs.slides.add_slide(blank)
@@ -599,16 +583,14 @@ def build() -> None:
          1.18, 4.90, 7.65, 0.26, size=12, color=TEAL, bold=True,
          align=PP_ALIGN.CENTER)
     add_notes(slide, "Evaluation and Inference", "7:30–8:45 (75 sec)",
-              "Recall at ten asks what fraction of future first-time views appear anywhere in the recommendation list, "
-              "without distinguishing rank one from rank ten.\n"
-              "NDCG at ten gives more credit when a correct channel appears near the top, so it is our primary model-"
-              "selection metric.\n"
-              "Hit rate asks whether a user-day has at least one success, while catalog coverage measures how broadly the "
-              "system distributes exposure across available channels.\n"
-              "Novelty and long-tail exposure diagnose concentration, and candidate coverage separates ranking errors "
-              "from channels that were absent from the fit catalog and therefore impossible to retrieve.\n"
-              "For paired model comparisons, we bootstrap whole users and apply Holm correction, preserving within-user "
-              "dependence while controlling multiple statistical tests.")
+              "Before reading the results, it helps to separate accuracy from breadth. Recall asks how many future "
+              "discoveries appear anywhere in the Top-10, while NDCG gives more credit when the correct channel appears "
+              "near the top, so NDCG is the metric we use to choose models. Hit rate answers a simpler question—did this "
+              "user-day get at least one useful recommendation? Coverage, novelty, and long-tail exposure tell us whether "
+              "the system keeps showing the same head channels or spreads attention more broadly. Candidate coverage is "
+              "also important because some future channels never appeared during fitting and were impossible for any "
+              "collaborative model to retrieve. For uncertainty, we compare models with user-level bootstrap samples and "
+              "correct for multiple tests.")
 
     # 9 — Experiment 1: overall model comparison
     slide = prs.slides.add_slide(blank)
@@ -630,20 +612,14 @@ def build() -> None:
     add_experiment_finding(slide,
                            "Hybrid gains 4.48% NDCG over ItemKNN, but exposes 10.35 pp less of the catalog.")
     add_notes(slide, "Experiment 1: Model Comparison", "8:45–10:30 (105 sec)",
-              "Experiment one asks which model best ranks unseen channels and whether higher ranking accuracy changes "
-              "how broadly the system exposes the catalog.\n"
-              "Hybrid ranks first with NDCG 0.13148 and Recall 0.22342, while ItemKNN is the strongest individual model "
-              "with NDCG 0.12584.\n"
-              "BPR is far lower at 0.05420 NDCG, and recent popularity reaches only 0.03779, so personalization clearly "
-              "adds predictive value beyond the strong head-item baseline.\n"
-              "The hybrid improves NDCG by 4.48 percent over ItemKNN, showing that BPR contributes some useful information "
-              "even though it is weak by itself.\n"
-              "However, hybrid catalog coverage is 26.36 percent compared with 36.71 percent for ItemKNN, so the accuracy "
-              "gain comes with more concentrated exposure.\n"
-              "Count-weighted ItemKNN is less accurate than binary ItemKNN but reaches the highest coverage, 40.50 percent, "
-              "which reinforces this accuracy–breadth trade-off.\n"
-              "Therefore, hybrid is the best choice for ranking accuracy, while ItemKNN or a reranking stage may be better "
-              "when creator-side exposure is also a primary objective.")
+              "This first experiment gives us the overall ranking. The hybrid is best, with NDCG 0.13148 and Recall "
+              "0.22342, while ItemKNN is the strongest single model at 0.12584 NDCG. The larger message is that every "
+              "personalized method beats popularity by a wide margin, so the viewer's own history contains real predictive "
+              "signal. The hybrid improves NDCG by 4.48 percent over ItemKNN, which means BPR is contributing something "
+              "useful even though it performs poorly alone. But that gain is not free: hybrid coverage falls to 26.36 "
+              "percent, compared with 36.71 percent for ItemKNN, and count-weighted ItemKNN reaches 40.50 percent coverage "
+              "despite lower accuracy. So if the objective is pure ranking quality, hybrid wins; if broader creator exposure "
+              "matters, ItemKNN or a diversity-aware reranker may be the better operating choice.")
 
     # 10 — Experiment 2: BPR failure and complementarity
     slide = prs.slides.add_slide(blank)
@@ -681,20 +657,14 @@ def build() -> None:
     add_experiment_finding(slide,
                            "BPR is weak alone but adds complementary hits; the hybrid gain is significant.")
     add_notes(slide, "Experiment 2: BPR Analysis", "10:30–12:10 (100 sec)",
-              "Experiment two asks why BPR underperforms ItemKNN and whether its different errors still make it useful in "
-              "the hybrid.\n"
-              "The long tail gives many channels too few positive observations to estimate stable item factors, whereas "
-              "ItemKNN can preserve a useful local co-view relation directly.\n"
-              "Unobserved pairs are also noisy negatives on Twitch: a viewer may not watch a channel simply because it "
-              "was offline, unavailable, or never exposed.\n"
-              "With one uniformly sampled negative per positive, many comparisons are too easy, and the pairwise training "
-              "objective does not exactly match full-catalog Top-10 ranking.\n"
-              "Five independent random seeds remain far below ItemKNN, so the gap is unlikely to be explained by a single "
-              "unlucky initialization.\n"
-              "Even so, BPR uniquely retrieves 5,540 positives that ItemKNN misses, while ItemKNN uniquely retrieves 22,559, "
-              "demonstrating complementary error patterns.\n"
-              "Combining those signals produces a 0.005638 NDCG gain, with a user-clustered confidence interval above zero "
-              "after Holm correction.")
+              "The surprising result is not simply that BPR loses; it is that BPR still helps the winning hybrid. The long "
+              "tail is one reason for the weak standalone result, because many channels do not have enough positive examples "
+              "to learn stable factors. The negatives are noisy as well: a viewer may miss a channel because it was offline "
+              "or never exposed, not because they disliked it. Uniform negative sampling then gives BPR many easy comparisons, "
+              "and its pairwise objective is not exactly the same as ranking the full catalog. We checked five random seeds, "
+              "so this is not just an unlucky run. Still, BPR finds 5,540 positives that ItemKNN misses. That complementary "
+              "signal lifts the hybrid by 0.005638 NDCG, and the confidence interval remains above zero after correction, so "
+              "the smaller contribution is statistically credible.")
 
     # 11 — Experiment 3: representation and subgroup analysis
     slide = prs.slides.add_slide(blank)
@@ -714,18 +684,14 @@ def build() -> None:
     add_experiment_finding(slide,
                            "Distinct-channel history beats counts; sparse targets and long histories are hardest.")
     add_notes(slide, "Experiment 3: Subgroup Analysis", "12:10–13:40 (90 sec)",
-              "Experiment three asks whether repeated-view counts improve the representation and which user or channel "
-              "subgroups remain hardest.\n"
-              "Binary ItemKNN reaches NDCG 0.12584, compared with 0.11694 for count weighting, so distinct channel history "
-              "is more useful than repeatedly amplifying familiar channels.\n"
-              "This fits the discovery target: repeated views describe loyalty to known channels, while our outcome is a "
-              "first-time view of something unseen.\n"
-              "Target popularity has the largest effect: recall is only 0.0328 in the least-popular quartile but exceeds "
-              "0.40 for the most-popular quartile.\n"
-              "NDCG also falls as viewer history grows, likely because easy neighboring channels have already been consumed "
-              "and the remaining candidates are less obvious.\n"
-              "For viewers with no usable history, collaborative models cannot personalize at all, so a popularity or "
-              "recent-popularity fallback remains necessary.")
+              "We then looked beyond the overall average to understand where the models succeed and fail. Binary ItemKNN "
+              "beats the count-weighted version, 0.12584 versus 0.11694 NDCG, which makes sense for this task: repeated views "
+              "tell us about loyalty to channels the viewer already knows, while we are trying to predict a first-time "
+              "discovery. The much larger gap appears across target popularity. Recall is only 0.0328 for the least-popular "
+              "quartile, but rises above 0.40 for the most-popular quartile. Performance also declines for viewers with long "
+              "histories, probably because the easiest neighboring channels have already been consumed and the remaining "
+              "choices are less obvious. At the extreme, a viewer with no usable history cannot be personalized by these "
+              "collaborative models at all, so the product still needs a popularity fallback.")
 
     # 12 — Experiment 4: temporal robustness
     slide = prs.slides.add_slide(blank)
@@ -746,16 +712,13 @@ def build() -> None:
     add_experiment_finding(slide,
                            "Every window preserves Hybrid > ItemKNN > BPR > popularity, although NDCG declines.")
     add_notes(slide, "Experiment 4: Temporal Robustness", "13:40–14:55 (75 sec)",
-              "Experiment four tests whether our main conclusion depends on one favorable test period by repeating the "
-              "comparison in early, middle, and late rolling-origin windows.\n"
-              "Hybrid NDCG declines from 0.1591 in the early window to 0.1315 in the late window, and every other model "
-              "also loses absolute accuracy.\n"
-              "Despite that drift, every window preserves the same ordering: Hybrid first, ItemKNN second, BPR third, and "
-              "popularity last.\n"
-              "The stable ordering makes the relative model conclusion more credible than a result from one held-out week "
-              "alone.\n"
-              "At the same time, the declining values warn that offline accuracy is time-dependent, so a deployed system "
-              "would need monitoring and periodic retraining.")
+              "A single test week can always be unusually easy or hard, so we repeated the comparison in early, middle, and "
+              "late windows. Absolute accuracy does decline: the hybrid moves from 0.1591 NDCG early to 0.1315 late, and the "
+              "other models show the same direction. What gives us confidence is that the ordering never changes. Hybrid "
+              "stays first, ItemKNN stays second, BPR stays third, and popularity stays last. That consistency makes the "
+              "relative conclusion much stronger than a result from one lucky holdout. At the same time, the falling scores "
+              "are an operational warning: viewer behavior and channel availability drift, so a deployed model would need "
+              "monitoring and regular retraining rather than assuming one offline score will remain valid.")
 
     # 13 — Experiment 5: scalability
     slide = prs.slides.add_slide(blank)
@@ -778,16 +741,13 @@ def build() -> None:
     add_experiment_finding(slide,
                            "Hybrid and ItemKNN remain stable; BPR weakens as the channel catalog expands.")
     add_notes(slide, "Experiment 5: Scalability", "14:55–16:10 (75 sec)",
-              "Experiment five asks whether the conclusions survive larger cohorts, using 100,000, 200,000, 500,000, and "
-              "one million users under the same seed and search protocol.\n"
-              "Hybrid NDCG stays between 0.1289 and 0.1317, while ItemKNN remains between 0.1261 and 0.1304, showing stable "
-              "ranking quality at larger scale.\n"
-              "BPR instead falls from 0.0558 to about 0.043 as the channel catalog expands, suggesting that additional rows "
-              "do not compensate for a much larger and sparser item space.\n"
-              "All runs use full-catalog ranking with validation capped at 2,000 users and testing capped at 5,000 users, "
-              "which keeps the evaluation protocol comparable.\n"
-              "Because the cohorts and catalogs are not nested, this is evidence of robustness and engineering scalability, "
-              "not a causal learning curve for the effect of training size.")
+              "We also wanted to know whether the story survives when the system grows. Using the same seed and search "
+              "protocol, we repeated the experiment from 100,000 users up to one million. Hybrid and ItemKNN remain "
+              "remarkably stable: hybrid stays between 0.1289 and 0.1317 NDCG, and ItemKNN stays in a similarly narrow range. "
+              "BPR moves in the opposite direction, falling from 0.0558 to roughly 0.043 as the catalog expands. In other "
+              "words, adding interactions does not automatically solve the problem when it also creates a much larger and "
+              "sparser item space. These cohorts are not nested, so I would not call this a causal learning curve. What we "
+              "can say is that the overall conclusion is robust and that the pipeline can support the larger experiment.")
 
     # 14 — Related work
     slide = prs.slides.add_slide(blank)
@@ -807,16 +767,14 @@ def build() -> None:
          "He et al. (2020): LightGCN for graph collaborative filtering",
          3.10, 4.39, 6.20, 0.48, size=11.5, color=GRAY)
     add_notes(slide, "Connection to Prior Work", "16:10–17:25 (75 sec)",
-              "LiveRec uses the same underlying Twitch source, but it recommends currently available streams and treats "
-              "repeat consumption as an important signal.\n"
-              "Our target is different: we exclude channels already watched and evaluate future first-time discovery, so "
-              "the two studies answer different recommendation questions.\n"
-              "LiveRec models exact availability, whereas our data supports only a recent-activity proxy; this limitation "
-              "helps explain why missing interactions are noisy negatives.\n"
-              "Rendle and colleagues provide the pairwise BPR objective used here, while LightGCN represents a natural graph "
-              "collaborative-filtering extension for future experiments.\n"
-              "Because tasks, candidate sets, and evaluation metrics differ, we use prior work to motivate design choices "
-              "rather than making direct numerical performance claims.")
+              "This work is closely related to LiveRec because it uses the same Twitch source, but it is not a direct "
+              "replication. LiveRec recommends streams that are currently available and treats repeat consumption as an "
+              "important signal. We deliberately ask a different question by removing channels the viewer already knows "
+              "and measuring future first-time discovery. LiveRec also models exact availability, while we only have a "
+              "recent-activity proxy, which is one reason our missing interactions are difficult to interpret. Methodologically, "
+              "Rendle and colleagues provide the BPR objective we test, and LightGCN is a natural next graph-based extension. "
+              "Because the targets, candidates, and metrics differ, prior work guides our design, but its numerical results "
+              "should not be compared directly with ours.")
 
     # 15 — Limitations and future work
     slide = prs.slides.add_slide(blank)
@@ -838,16 +796,14 @@ def build() -> None:
          1.05, 4.85, 7.90, 0.28, size=14, color=TEAL, bold=True,
          align=PP_ALIGN.CENTER)
     add_notes(slide, "Limitations and Next Steps", "17:25–18:45 (80 sec)",
-              "The first limitation is candidate cold-start: about twelve percent of future positive channels are absent "
-              "from the fit catalog, so no collaborative ranker can retrieve them.\n"
-              "Adding creator, language, game, or textual metadata could generate candidates for those channels, but this "
-              "dataset provides only identifiers and interaction times.\n"
-              "Second, exact live status is unknown, so an unobserved pair may represent unavailability rather than dislike; "
-              "timestamped availability masks would create cleaner negatives.\n"
-              "Third, uniform BPR negatives are often easy, motivating popularity-aware or hard-negative sampling that more "
-              "closely matches full-catalog ranking.\n"
-              "Finally, offline NDCG does not measure satisfaction or creator impact; an online test should track watch time, "
-              "retention, and exposure, potentially with a diversity-aware reranker.")
+              "The remaining gaps are larger than a single model upgrade. About twelve percent of future positive channels "
+              "never appear in the fit catalog, so a collaborative ranker has no representation to score. Solving that "
+              "requires creator, game, language, or text features, but this dataset gives us identifiers and interaction "
+              "times only. We also do not know exact live status, which means an unobserved pair may reflect unavailability "
+              "rather than dislike. For BPR, harder or popularity-aware negatives would make training look more like the "
+              "full-catalog decision. And finally, offline NDCG cannot tell us whether viewers were satisfied or whether "
+              "exposure was fair to creators. The practical next step is an online test that measures watch time, retention, "
+              "and exposure, potentially followed by a diversity-aware reranker.")
 
     # 16 — Conclusion
     slide = prs.slides.add_slide(blank)
@@ -877,16 +833,14 @@ def build() -> None:
          1.02, 5.02, 7.96, 0.24, size=13.5, color=NAVY, bold=True,
          align=PP_ALIGN.CENTER)
     add_notes(slide, "Conclusions", "18:45–20:00 (75 sec)",
-              "First, personalization is valuable: Hybrid reaches NDCG 0.1315, compared with roughly 0.037 for global or "
-              "recent popularity.\n"
-              "Second, ItemKNN is the strongest individual model because local co-view relationships remain reliable under "
-              "extreme sparsity, while the current BPR factors do not.\n"
-              "Third, BPR still contributes complementary hits, so the hybrid produces a statistically supported accuracy "
-              "gain over ItemKNN alone.\n"
-              "That gain is not universal: hybrid catalog coverage is lower, and increasing data scale does not automatically "
-              "repair BPR as the item space also grows.\n"
-              "The main lesson is that recommendation quality depends on aligning the data, the new-channel target, and the "
-              "learning objective rather than simply choosing a more complex model.")
+              "Let me close with the practical takeaway. Personalization clearly matters: the hybrid reaches 0.1315 NDCG, "
+              "compared with about 0.037 for popularity. ItemKNN is the strongest individual model because local co-view "
+              "relationships remain useful even when the data is extremely sparse. BPR is much weaker on its own, but it "
+              "finds some channels ItemKNN misses, and that complementary signal gives the hybrid a statistically credible "
+              "gain. The trade-off is lower catalog coverage, and simply adding more users does not repair BPR when the item "
+              "space grows at the same time. So the main lesson is not that the most complex model wins. The better system is "
+              "the one whose data representation, training objective, and evaluation target all match the discovery problem "
+              "we actually want to solve.")
 
     flatten_presentation_effects(prs)
     prs.save(OUT)
