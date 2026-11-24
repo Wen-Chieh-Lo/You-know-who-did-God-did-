@@ -436,7 +436,8 @@ def build() -> None:
         ["Observation window", "43 relative days", "43 relative days"],
         ["Feedback", "Viewing sessions (implicit)", "Viewing sessions (implicit)"],
         ["Available fields", "User, stream, channel, start, stop", "Same five fields"],
-    ], 0.82, 1.28, [2.05, 3.15, 3.15], row_h=0.51, font_size=12.0)
+        ["Channel metadata", "Identifier only; no class or category", "Same limitation"],
+    ], 0.82, 1.28, [2.05, 3.15, 3.15], row_h=0.46, font_size=11.3)
     text(slide, "Source: UCSD Twitch dataset; Rappaz, McAuley, and Aberer, RecSys 2021.",
          0.86, 5.02, 5.80, 0.18, size=8.8, color=MID)
     add_notes(slide, "Dataset Overview", "2:10–3:25 (75 sec)",
@@ -446,7 +447,9 @@ def build() -> None:
               "benchmark, which contains just over three million interactions and more than one hundred sixty-two "
               "thousand channels over the same observation window. The data records viewing sessions rather than "
               "ratings. Its five fields are an anonymous user, stream identifier, channel name, start slot, and stop "
-              "slot. Therefore the recommendation task relies on implicit feedback and has no content metadata. "
+              "slot. A channel is available only as an identifier: there are no class or category labels. We therefore "
+              "cannot group channels by content class or use class-based content features; the models must rely on "
+              "implicit interaction structure. "
               "The later scalability slide separately introduces the cohorts used for scale testing.")
 
     # 5 — Task and protocol
