@@ -96,23 +96,21 @@ The resulting tables and presentation-ready figures are written under
 `outputs/assignment2/`; their interpretation is summarized in
 [`reports/ASSIGNMENT_EXPERIMENTS.md`](reports/ASSIGNMENT_EXPERIMENTS.md).
 
-The primary template-based English research deck, the earlier 17-slide English and
-Traditional-Chinese decks, and timed speaker notes are in
-[`presentation/`](presentation/README.md). Rebuild them with the scripts in `scripts/`
-after installing the optional `presentation` dependencies.
+The primary English research deck and the earlier 17-slide English and
+Traditional-Chinese decks are documented in
+[`presentation/`](presentation/README.md). Private narration and local
+presentation-production files are intentionally excluded from the public repository.
 
 Additional no-metadata models (LightGCN, SASRec, GRU4Rec, time-decayed ItemKNN,
 and a clearly labelled LiveRec-like seven-day availability proxy) are reproduced with:
 
 ```bash
 python -m pip install -e '.[advanced]'
-./scripts/run_advanced.sh configs/full.yaml
+twitch-recs advanced --config configs/full.yaml
 ```
 
 They use the same chronological split and test labels and write separately under
-`outputs/advanced/`. The wrapper works around the Intel ITT linkage issue in the
-project machine's installed PyTorch; on a normal PyTorch installation it simply runs
-the CLI. The checked-in interpretation is in
+`outputs/advanced/`. The checked-in interpretation is in
 [`report.md`](report.md#7-新增模型實驗lightgcn-與序列模型); full generated tables remain
 local experiment artifacts under the ignored output directory.
 

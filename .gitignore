@@ -109,3 +109,41 @@ __pycache__/
 ~$*.pptx
 *.egg-info/
 
+# Local secrets and credentials (never publish)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*.json
+secrets*.json
+secrets*.yaml
+secrets*.yml
+
+# Editor, OS, and AI-assistant working files
+.DS_Store
+.idea/
+.vscode/
+.cursor/
+.claude/
+.codex/
+.aider*
+AGENTS.md
+CLAUDE.md
+.github/copilot-instructions.md
+
+# Private recordings and presentation-production artifacts
+*.mp4
+*.mov
+*.mkv
+/presentation/*_notes.md
+/presentation/*_speaker_notes*.md
+/presentation/*_transcript.md
+/scripts/build_*slides*.py
+/scripts/build_*presentation*.py
+
+# Course handouts and source presentation template (not project artifacts)
+/158 _ 258 2026 Assignment 2 (3).pdf
+/assignment2_fa26.pdf
+/Group_9_Presentation.pptx
+
